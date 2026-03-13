@@ -1,0 +1,12 @@
+services:
+  task-center:
+    build: .
+    container_name: task-center-app
+    restart: unless-stopped
+    environment:
+      APP_PORT: ${APP_PORT:-18080}
+      DB_URL: ${DB_URL:-jdbc:postgresql://host.docker.internal:5432/task_center}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASS: ${DB_PASS:-postgres}
+    ports:
+      - "18080:18080"

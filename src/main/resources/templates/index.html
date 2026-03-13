@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字员工任务大盘</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body data-auto-refresh-seconds="3">
+<div class="bg-shape"></div>
+<main class="page">
+    <header class="topbar">
+        <h1>数字员工任务大盘</h1>
+        <nav class="main-nav">
+            <a class="nav-link is-active" href="/">数据大盘</a>
+            <a class="nav-link" href="/projects">项目中心</a>
+            <a class="nav-link" href="/monitor">系统监控</a>
+            <a class="nav-link nav-api" href="/swagger-ui.html">API 文档</a>
+        </nav>
+    </header>
+
+    <section class="cards">
+        <article class="card"><h3>项目总数</h3><p th:text="${dashboard.projectTotal}">0</p></article>
+        <article class="card"><h3>任务总数</h3><p th:text="${dashboard.taskTotal}">0</p></article>
+        <article class="card"><h3>待处理</h3><p th:text="${dashboard.pendingTotal}">0</p></article>
+        <article class="card"><h3>执行中</h3><p th:text="${dashboard.runningTotal}">0</p></article>
+        <article class="card"><h3>已完成</h3><p th:text="${dashboard.completedTotal}">0</p></article>
+        <article class="card"><h3>失败</h3><p th:text="${dashboard.failedTotal}">0</p></article>
+        <article class="card"><h3>阻塞</h3><p th:text="${dashboard.blockedTotal}">0</p></article>
+        <article class="card"><h3>今日新增/完成</h3><p><span th:text="${dashboard.todayCreatedTotal}">0</span> / <span th:text="${dashboard.todayCompletedTotal}">0</span></p></article>
+    </section>
+
+    <section class="panel-grid">
+        <article class="panel">
+            <h2>按项目统计任务数</h2>
+            <table>
+                <thead><tr><th>项目</th><th>数量</th></tr></thead>
+                <tbody>
+                <tr th:each="item : ${dashboard.projectTaskCounts}">
+                    <td th:text="${item.name}">项目名</td>
+                    <td th:text="${item.count}">0</td>
+                </tr>
+                </tbody>
+            </table>
+        </article>
+
+        <article class="panel">
+            <h2>按状态统计任务数</h2>
+            <table>
+                <thead><tr><th>状态</th><th>数量</th></tr></thead>
+                <tbody>
+                <tr th:each="item : ${dashboard.statusTaskCounts}">
+                    <td>
+                        <span class="status"
+                              th:classappend="${@displayText.taskStatusClass(item.name)}"
+                              th:text="${@displayText.taskStatus(item.name)}">待处理</span>
+                    </td>
+                    <td th:text="${item.count}">0</td>
+                </tr>
+                </tbody>
+            </table>
+        </article>
+
+        <article class="panel full-width">
+            <h2>最近7天任务新增趋势</h2>
+            <div class="trend-row">
+                <div class="trend-item" th:each="item : ${dashboard.recentSevenDays}">
+                    <span class="trend-day" th:text="${item.day}">03-01</span>
+                    <span class="trend-count" th:text="${item.count}">0</span>
+                </div>
+            </div>
+        </article>
+    </section>
+</main>
+<script th:src="@{/js/auto-refresh.js}"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="taskTable(tasks)">
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>任务编号</th>
+            <th>标题</th>
+            <th>类型</th>
+            <th>状态</th>
+            <th>优先级</th>
+            <th>负责人</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(tasks)}">
+            <td colspan="8">暂无任务</td>
+        </tr>
+        <tr th:each="task : ${tasks}">
+            <td th:text="${task.id}">1</td>
+            <td th:text="${task.taskCode}">TASK-xxx</td>
+            <td th:text="${task.title}">任务名</td>
+            <td th:text="${task.taskType}">DOCUMENT</td>
+            <td>
+                <span class="status"
+                      th:classappend="${@displayText.taskStatusClass(task.status)}"
+                      th:text="${@displayText.taskStatus(task.status)}">待处理</span>
+            </td>
+            <td th:text="${task.priority}">MEDIUM</td>
+            <td th:text="${task.ownerName}">李四</td>
+            <td><a th:href="@{'/tasks/' + ${task.id}}">查看详情</a></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
