@@ -2,6 +2,6 @@
 /.idea/
 *.iml
 /.vscode/
-/.DS_Store
+**/.DS_Store
 *.log
 *.pid
