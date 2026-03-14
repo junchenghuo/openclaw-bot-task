@@ -31,6 +31,12 @@ public class Project {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "workspace_path", length = 500)
+    private String workspacePath;
+
+    @Column(name = "memory_path", length = 500)
+    private String memoryPath;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -103,5 +109,21 @@ public class Project {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getWorkspacePath() {
+        return workspacePath;
+    }
+
+    public void setWorkspacePath(String workspacePath) {
+        this.workspacePath = workspacePath;
+    }
+
+    public String getMemoryPath() {
+        return memoryPath;
+    }
+
+    public void setMemoryPath(String memoryPath) {
+        this.memoryPath = memoryPath;
     }
 }

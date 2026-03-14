@@ -5,6 +5,10 @@ import java.util.List;
 public record DashboardResponse(
         long projectTotal,
         long taskTotal,
+        long meetingTotal,
+        long meetingTodayTotal,
+        long meetingVotingTotal,
+        long meetingDecidedTotal,
         long pendingTotal,
         long runningTotal,
         long completedTotal,

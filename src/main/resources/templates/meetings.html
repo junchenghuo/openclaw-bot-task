@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务中台 - 会议中心</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body data-auto-refresh-seconds="3">
+<div class="bg-shape"></div>
+<main class="page">
+    <header class="topbar">
+        <h1>会议中心</h1>
+        <nav class="main-nav">
+            <a class="nav-link" href="/">数据大盘</a>
+            <a class="nav-link" href="/projects">项目中心</a>
+            <a class="nav-link is-active" href="/meetings">会议中心</a>
+            <a class="nav-link" href="/monitor">系统监控</a>
+            <a class="nav-link nav-api" href="/swagger-ui.html">API 文档</a>
+        </nav>
+    </header>
+
+    <section class="panel">
+        <form class="toolbar" method="get" action="/meetings">
+            <label for="projectId">选择项目</label>
+            <select id="projectId" name="projectId" onchange="this.form.submit()">
+                <option th:if="${#lists.isEmpty(projects)}" value="">暂无项目</option>
+                <option th:each="p : ${projects}"
+                        th:value="${p.id}"
+                        th:text="${p.projectName}"
+                        th:selected="${selectedProjectId != null and selectedProjectId == p.id}"></option>
+            </select>
+        </form>
+
+        <p th:if="${selectedProject != null}">
+            当前项目：<strong th:text="${selectedProject.projectName}">日常工作</strong>
+        </p>
+
+        <table>
+            <thead>
+            <tr>
+                <th>会议编号</th>
+                <th>主题</th>
+                <th>组织者</th>
+                <th>状态</th>
+                <th>计划时间</th>
+                <th>决策结论</th>
+                <th>投票数</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(meetings)}">
+                <td colspan="7">当前项目暂无会议记录</td>
+            </tr>
+            <tr th:each="meeting : ${meetings}">
+                <td th:text="${meeting.meetingCode}">MEET-xxx</td>
+                <td>
+                    <button type="button"
+                            class="topic-link"
+                            th:attr="data-modal-id=${'meeting-modal-' + meeting.id}"
+                            th:text="${meeting.topic}">主题</button>
+                </td>
+                <td th:text="${meeting.organizerName}">组织者</td>
+                <td>
+                    <span class="status"
+                          th:classappend="${@displayText.meetingStatusClass(meeting.status)}"
+                          th:text="${@displayText.meetingStatus(meeting.status)}">投票中</span>
+                </td>
+                <td th:text="${@displayText.dateTime(meeting.scheduledAt)}">2026-03-14 18:00:00</td>
+                <td th:text="${meeting.decisionOption == null ? '-' : meeting.decisionOption}">-</td>
+                <td th:text="${#lists.size(meeting.votes)}">0</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <dialog class="meeting-modal" th:each="meeting : ${meetings}" th:id="${'meeting-modal-' + meeting.id}">
+            <div class="modal-head">
+                <h3 th:text="${meeting.topic}">会议主题</h3>
+                <button type="button" class="modal-close" th:attr="data-close-id=${'meeting-modal-' + meeting.id}">关闭</button>
+            </div>
+
+            <div class="modal-body">
+                <p><strong>会议编号：</strong><span th:text="${meeting.meetingCode}"></span></p>
+                <p><strong>组织者：</strong><span th:text="${meeting.organizerName}"></span></p>
+                <p><strong>状态：</strong><span class="status" th:classappend="${@displayText.meetingStatusClass(meeting.status)}" th:text="${@displayText.meetingStatus(meeting.status)}"></span></p>
+                <p><strong>计划时间：</strong><span th:text="${@displayText.dateTime(meeting.scheduledAt)}"></span></p>
+                <p><strong>关联任务ID：</strong><span th:text="${meeting.relatedTaskId == null ? '-' : meeting.relatedTaskId}"></span></p>
+                <p><strong>问题描述：</strong><span th:text="${meeting.problemStatement == null ? '-' : meeting.problemStatement}"></span></p>
+                <p><strong>决策结果：</strong><span th:text="${meeting.decisionOption == null ? '-' : meeting.decisionOption}"></span></p>
+                <p><strong>决策摘要：</strong><span th:text="${meeting.decisionSummary == null ? '-' : meeting.decisionSummary}"></span></p>
+
+                <h4>参会成员</h4>
+                <table>
+                    <thead><tr><th>姓名</th><th>角色</th><th>职责</th></tr></thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(meeting.participants)}"><td colspan="3">暂无成员记录</td></tr>
+                    <tr th:each="p : ${meeting.participants}">
+                        <td th:text="${p.memberName}">成员</td>
+                        <td th:text="${p.memberRole == null ? '-' : p.memberRole}">角色</td>
+                        <td th:text="${p.responsibility == null ? '-' : p.responsibility}">职责</td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <h4>投票详情</h4>
+                <table>
+                    <thead><tr><th>投票人</th><th>选项</th><th>理由</th><th>时间</th></tr></thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(meeting.votes)}"><td colspan="4">暂无投票记录</td></tr>
+                    <tr th:each="v : ${meeting.votes}">
+                        <td th:text="${v.voterName}">投票人</td>
+                        <td th:text="${v.optionKey}">选项</td>
+                        <td th:text="${v.reason == null ? '-' : v.reason}">理由</td>
+                        <td th:text="${@displayText.dateTime(v.createdAt)}">2026-03-14 00:00:00</td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <div th:with="minutesView=${@displayText.meetingMinutesView(meeting.minutes)}">
+                    <h4>会议纪要（业务视图）</h4>
+                    <table class="compact-table">
+                        <tbody>
+                        <tr><th>决策人</th><td th:text="${minutesView.closedBy}">-</td></tr>
+                        <tr><th>决策时间</th><td th:text="${minutesView.closedAt}">-</td></tr>
+                        <tr><th>最终结论</th><td th:text="${minutesView.decisionOption}">-</td></tr>
+                        <tr><th>决策摘要</th><td th:text="${minutesView.decisionSummary}">-</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h4>各选项得票</h4>
+                    <table>
+                        <thead><tr><th>候选方案</th><th>票数</th></tr></thead>
+                        <tbody>
+                        <tr th:if="${#lists.isEmpty(minutesView.voteCount)}"><td colspan="2">暂无统计</td></tr>
+                        <tr th:each="vc : ${minutesView.voteCount}">
+                            <td th:text="${vc.option}">方案A</td>
+                            <td th:text="${vc.count}">0</td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <h4>投票明细（纪要内）</h4>
+                    <table>
+                        <thead><tr><th>投票人</th><th>选择</th><th>说明</th></tr></thead>
+                        <tbody>
+                        <tr th:if="${#lists.isEmpty(minutesView.votes)}"><td colspan="3">暂无明细</td></tr>
+                        <tr th:each="mv : ${minutesView.votes}">
+                            <td th:text="${mv.voter}">张三</td>
+                            <td th:text="${mv.option}">方案A</td>
+                            <td th:text="${mv.reason}">说明</td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <details class="minutes-raw" th:if="${!minutesView.parsed}">
+                        <summary>查看原始纪要文本</summary>
+                        <pre class="minutes-box" th:text="${minutesView.raw}">-</pre>
+                    </details>
+                </div>
+            </div>
+        </dialog>
+    </section>
+</main>
+<script th:src="@{/js/auto-refresh.js}"></script>
+<script th:src="@{/js/meeting-modal.js}"></script>
+</body>
+</html>

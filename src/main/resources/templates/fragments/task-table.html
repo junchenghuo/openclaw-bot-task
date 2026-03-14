@@ -23,13 +23,13 @@
             <td th:text="${task.id}">1</td>
             <td th:text="${task.taskCode}">TASK-xxx</td>
             <td th:text="${task.title}">任务名</td>
-            <td th:text="${task.taskType}">DOCUMENT</td>
+            <td th:text="${@displayText.taskType(task.taskType)}">文档</td>
             <td>
                 <span class="status"
                       th:classappend="${@displayText.taskStatusClass(task.status)}"
                       th:text="${@displayText.taskStatus(task.status)}">待处理</span>
             </td>
-            <td th:text="${task.priority}">MEDIUM</td>
+            <td th:text="${@displayText.taskPriority(task.priority)}">中</td>
             <td th:text="${task.ownerName}">李四</td>
             <td><a th:href="@{'/tasks/' + ${task.id}}">查看详情</a></td>
         </tr>

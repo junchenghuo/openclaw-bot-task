@@ -22,7 +22,9 @@ WHERE NOT EXISTS (SELECT 1 FROM project WHERE project_code = 'DAILY_WORK');
 UPDATE project
 SET project_name = '日常工作',
     status = 'ACTIVE',
-    description = '系统启动后的默认项目'
+    description = '系统启动后的默认项目',
+    workspace_path = '/Users/imac/midCreate/openclaw-workspaces/ai-team/projects/daily-work-routine/work',
+    memory_path = '/Users/imac/midCreate/openclaw-workspaces/ai-team/projects/daily-work-routine/memory'
 WHERE project_code = 'DAILY_WORK';
 
 -- 合并“日常工作”重复项目：任务统一归档到 DAILY_WORK，再删除重复项目

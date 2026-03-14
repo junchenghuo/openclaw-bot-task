@@ -2,7 +2,9 @@ package com.example.taskcenter.service;
 
 import com.example.taskcenter.dto.response.DashboardResponse;
 import com.example.taskcenter.entity.Project;
+import com.example.taskcenter.model.MeetingStatus;
 import com.example.taskcenter.model.TaskStatus;
+import com.example.taskcenter.repository.ProjectMeetingRepository;
 import com.example.taskcenter.repository.ProjectRepository;
 import com.example.taskcenter.repository.TaskRepository;
 import org.springframework.stereotype.Service;
@@ -23,15 +25,20 @@ public class DashboardService {
 
     private final ProjectRepository projectRepository;
     private final TaskRepository taskRepository;
+    private final ProjectMeetingRepository projectMeetingRepository;
 
-    public DashboardService(ProjectRepository projectRepository, TaskRepository taskRepository) {
+    public DashboardService(ProjectRepository projectRepository,
+                            TaskRepository taskRepository,
+                            ProjectMeetingRepository projectMeetingRepository) {
         this.projectRepository = projectRepository;
         this.taskRepository = taskRepository;
+        this.projectMeetingRepository = projectMeetingRepository;
     }
 
     public DashboardResponse buildDashboard() {
         long projectTotal = projectRepository.count();
         long taskTotal = taskRepository.count();
+        long meetingTotal = projectMeetingRepository.count();
         long pendingTotal = taskRepository.countByStatus(TaskStatus.PENDING);
         long runningTotal = taskRepository.countByStatus(TaskStatus.RUNNING);
         long completedTotal = taskRepository.countByStatus(TaskStatus.COMPLETED);
@@ -40,6 +47,9 @@ public class DashboardService {
 
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
         LocalDateTime tomorrowStart = todayStart.plusDays(1);
+        long meetingTodayTotal = projectMeetingRepository.countByScheduledAtBetween(todayStart, tomorrowStart);
+        long meetingVotingTotal = projectMeetingRepository.countByStatus(MeetingStatus.VOTING);
+        long meetingDecidedTotal = projectMeetingRepository.countByStatus(MeetingStatus.DECIDED);
         long todayCreatedTotal = taskRepository.countByCreatedAtBetween(todayStart, tomorrowStart);
         long todayCompletedTotal = taskRepository.countByStatusAndActualFinishAtBetween(
                 TaskStatus.COMPLETED, todayStart, tomorrowStart);
@@ -68,6 +78,10 @@ public class DashboardService {
         return new DashboardResponse(
                 projectTotal,
                 taskTotal,
+                meetingTotal,
+                meetingTodayTotal,
+                meetingVotingTotal,
+                meetingDecidedTotal,
                 pendingTotal,
                 runningTotal,
                 completedTotal,

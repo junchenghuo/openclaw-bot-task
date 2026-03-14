@@ -10,6 +10,8 @@ public record ProjectResponse(
         String projectName,
         String status,
         String description,
+        String workspacePath,
+        String memoryPath,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -20,6 +22,8 @@ public record ProjectResponse(
                 project.getProjectName(),
                 project.getStatus(),
                 project.getDescription(),
+                project.getWorkspacePath(),
+                project.getMemoryPath(),
                 project.getCreatedAt(),
                 project.getUpdatedAt()
         );

@@ -17,6 +17,7 @@
         <nav class="main-nav">
             <a class="nav-link is-active" href="/">数据大盘</a>
             <a class="nav-link" href="/projects">项目中心</a>
+            <a class="nav-link" href="/meetings">会议中心</a>
             <a class="nav-link" href="/monitor">系统监控</a>
             <a class="nav-link nav-api" href="/swagger-ui.html">API 文档</a>
         </nav>
@@ -25,6 +26,10 @@
     <section class="cards">
         <article class="card"><h3>项目总数</h3><p th:text="${dashboard.projectTotal}">0</p></article>
         <article class="card"><h3>任务总数</h3><p th:text="${dashboard.taskTotal}">0</p></article>
+        <article class="card"><h3>会议总数</h3><p th:text="${dashboard.meetingTotal}">0</p></article>
+        <article class="card"><h3>今日会议</h3><p th:text="${dashboard.meetingTodayTotal}">0</p></article>
+        <article class="card"><h3>投票中会议</h3><p th:text="${dashboard.meetingVotingTotal}">0</p></article>
+        <article class="card"><h3>已决策会议</h3><p th:text="${dashboard.meetingDecidedTotal}">0</p></article>
         <article class="card"><h3>待处理</h3><p th:text="${dashboard.pendingTotal}">0</p></article>
         <article class="card"><h3>执行中</h3><p th:text="${dashboard.runningTotal}">0</p></article>
         <article class="card"><h3>已完成</h3><p th:text="${dashboard.completedTotal}">0</p></article>

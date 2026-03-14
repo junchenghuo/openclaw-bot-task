@@ -6,6 +6,9 @@
 
   const intervalMs = seconds * 1000
   window.setInterval(() => {
+    if (document.querySelector("dialog[open]")) {
+      return
+    }
     window.location.reload()
   }, intervalMs)
 })()

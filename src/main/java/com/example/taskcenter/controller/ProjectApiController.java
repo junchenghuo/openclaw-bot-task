@@ -1,13 +1,17 @@
 package com.example.taskcenter.controller;
 
+import com.example.taskcenter.dto.request.CreateProjectRequest;
 import com.example.taskcenter.dto.response.ApiResponse;
 import com.example.taskcenter.dto.response.ProjectResponse;
 import com.example.taskcenter.service.ProjectService;
 import com.example.taskcenter.support.RequestIdSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,5 +38,12 @@ public class ProjectApiController {
     @GetMapping("/{id}")
     public ApiResponse<ProjectResponse> getProject(@PathVariable("id") Long id, HttpServletRequest request) {
         return ApiResponse.success(ProjectResponse.from(projectService.getProject(id)), RequestIdSupport.getOrCreate(request));
+    }
+
+    @Operation(summary = "创建项目", description = "创建项目并初始化工作/记忆目录")
+    @PostMapping
+    public ApiResponse<ProjectResponse> createProject(@Valid @RequestBody CreateProjectRequest body,
+                                                      HttpServletRequest request) {
+        return ApiResponse.success(ProjectResponse.from(projectService.createProject(body)), RequestIdSupport.getOrCreate(request));
     }
 }

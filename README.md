@@ -29,6 +29,12 @@
 - 清理历史示例交付物（`projects/login-page-delivery` 与 `projects/common-ui-components` 下旧文档与图片），降低仓库冗余。
 - 保留并强化“Leader 统一调度、角色标准回执”的协作约束，便于后续任务编排与过程审计。
 
+## 本次改进点（2026-03-14）
+
+- 在项目维度新增会议模块：支持 Leader 发起会议、邀请成员、投票决策、沉淀会议纪要。
+- 提供会议 API：`/api/projects/{projectId}/meetings`、`/votes`、`/close`，用于“分歧问题 -> 投票确认 -> 纪要归档”的闭环。
+- 升级 `openclaw-task` 技能：项目推进遇到争议时必须走会议投票流程，并把决策同步到任务/WBS。
+
 ## 运行环境
 
 - JDK 17+
@@ -88,6 +94,7 @@ docker compose up --build -d
 
 - `GET /api/projects`
 - `GET /api/projects/{id}`
+- `POST /api/projects`
 - `GET /api/tasks`
 - `GET /api/tasks/{id}`
 - `POST /api/tasks`
@@ -99,6 +106,18 @@ docker compose up --build -d
 - `PUT /api/tasks/{id}`
 - `GET /api/tasks/{id}/logs`
 - `GET /api/tasks/{id}/events`
+- `GET /api/projects/{projectId}/meetings`
+- `GET /api/projects/{projectId}/meetings/{meetingId}`
+- `POST /api/projects/{projectId}/meetings`
+- `POST /api/projects/{projectId}/meetings/{meetingId}/votes`
+- `POST /api/projects/{projectId}/meetings/{meetingId}/close`
+
+## 项目目录规范
+
+- 项目根目录固定：`/Users/imac/midCreate/openclaw-workspaces/ai-team/projects`
+- 每次新建项目会自动创建独立目录：`<projectCode>-<slug>`
+- 目录结构固定包含：`work/`、`memory/`、`wbs/`、`meetings/`、`meta/`
+- `ProjectResponse` 会返回：`workspacePath`（work）与 `memoryPath`（memory）
 
 可直接执行的 curl 示例见：`docs/api-curl-examples.md`
 
@@ -137,13 +156,20 @@ docker compose up --build -d
 - 对 `PENDING/RUNNING/BLOCKED/FAILED` 任务进行周期巡检，输出待办清单与风险清单。
 - 出现 `INVALID_STATUS_TRANSITION` 时，先读取当前状态，再按合法流转重试。
 
-### 5) 阻塞/失败升级机制（强制）
+### 5) 会议决策机制（项目型问题）
+
+1. 当出现方案分歧/阻塞争议时，Leader 必须发起项目会议：`POST /api/projects/{projectId}/meetings`。
+2. 会议成员必须投票：`POST /api/projects/{projectId}/meetings/{meetingId}/votes`。
+3. 会议关闭并确认最终决策：`POST /api/projects/{projectId}/meetings/{meetingId}/close`。
+4. 决策结果必须记录到会议纪要（minutes），并同步更新相关任务/WBS。
+
+### 6) 阻塞/失败升级机制（强制）
 
 1. 任务进入 `BLOCKED` 或 `FAILED` 后，机器人必须第一时间通知 `leader` 介入。
 2. `leader` 处理后，若仍无法解除阻塞或修复失败，必须升级到管理员（admin）。
 3. 升级信息必须包含：任务编号、当前状态、阻塞/失败原因、已尝试动作、下一步建议。
 
-### 6) 机器人输出规范
+### 7) 机器人输出规范
 
 - 分派后必须回执：`已创建任务 TASK-xxx（项目：xxx，负责人：xxx，状态：PENDING）`。
 - 状态变更必须回执：`TASK-xxx 已更新为 RUNNING/BLOCKED/COMPLETED/FAILED`。

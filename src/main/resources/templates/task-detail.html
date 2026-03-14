@@ -17,6 +17,7 @@
         <nav class="main-nav">
             <a class="nav-link" href="/">数据大盘</a>
             <a class="nav-link is-active" href="/projects">项目中心</a>
+            <a class="nav-link" href="/meetings">会议中心</a>
             <a class="nav-link" href="/monitor">系统监控</a>
             <a class="nav-link nav-api" href="/swagger-ui.html">API 文档</a>
         </nav>
@@ -25,14 +26,14 @@
     <section class="panel">
         <h2 th:text="${task.title}">任务标题</h2>
         <p><strong>任务编号：</strong><span th:text="${task.taskCode}"></span></p>
-        <p><strong>任务类型：</strong><span th:text="${task.taskType}"></span></p>
+        <p><strong>任务类型：</strong><span th:text="${@displayText.taskType(task.taskType)}"></span></p>
         <p><strong>状态：</strong><span class="status" th:classappend="${@displayText.taskStatusClass(task.status)}" th:text="${@displayText.taskStatus(task.status)}"></span></p>
-        <p><strong>优先级：</strong><span th:text="${task.priority}"></span></p>
+        <p><strong>优先级：</strong><span th:text="${@displayText.taskPriority(task.priority)}"></span></p>
         <p><strong>发起人：</strong><span th:text="${task.initiator}"></span></p>
         <p><strong>负责人：</strong><span th:text="${task.ownerName}"></span></p>
-        <p><strong>计划完成：</strong><span th:text="${task.plannedFinishAt}"></span></p>
-        <p><strong>实际开始：</strong><span th:text="${task.actualStartAt}"></span></p>
-        <p><strong>实际完成：</strong><span th:text="${task.actualFinishAt}"></span></p>
+        <p><strong>计划完成：</strong><span th:text="${@displayText.dateTime(task.plannedFinishAt)}"></span></p>
+        <p><strong>实际开始：</strong><span th:text="${@displayText.dateTime(task.actualStartAt)}"></span></p>
+        <p><strong>实际完成：</strong><span th:text="${@displayText.dateTime(task.actualFinishAt)}"></span></p>
         <p><strong>阻塞联系人：</strong><span th:text="${task.blockerContact}"></span></p>
         <p><strong>阻塞原因：</strong><span th:text="${task.blockReason}"></span></p>
         <p><strong>详情：</strong><span th:text="${task.detail}"></span></p>
@@ -45,7 +46,7 @@
                 <thead><tr><th>时间</th><th>类型</th><th>内容</th></tr></thead>
                 <tbody>
                 <tr th:each="log : ${logs}">
-                    <td th:text="${log.createdAt}">2026-01-01</td>
+                    <td th:text="${@displayText.dateTime(log.createdAt)}">2026-01-01 00:00:00</td>
                     <td th:text="${log.logType}">SYSTEM</td>
                     <td th:text="${log.message}">message</td>
                 </tr>
@@ -58,7 +59,7 @@
                 <thead><tr><th>时间</th><th>变化</th><th>操作人</th><th>备注</th></tr></thead>
                 <tbody>
                 <tr th:each="event : ${events}">
-                    <td th:text="${event.createdAt}">2026-01-01</td>
+                    <td th:text="${@displayText.dateTime(event.createdAt)}">2026-01-01 00:00:00</td>
                     <td>
                         <span class="status" th:classappend="${@displayText.taskStatusClass(event.fromStatus)}" th:text="${@displayText.taskStatus(event.fromStatus)}">待处理</span>
                         ->
