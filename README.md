@@ -31,9 +31,9 @@
 
 ## 本次改进点（2026-03-14）
 
-- 为多角色协议文件补充 Mattermost 快速已读规则：收到消息先加 `:ok_hand:`，再回执 `已接单/done/blocked`。
-- 清理历史示例交付物（`projects/login-page-delivery` 与 `projects/common-ui-components` 下旧文档与图片），降低仓库冗余。
-- 保留并强化“Leader 统一调度、角色标准回执”的协作约束，便于后续任务编排与过程审计。
+- 新增项目会议能力：支持创建会议、成员投票、关闭会议并沉淀 `minutes`，用于方案分歧的结构化决策。
+- 新增任务中心页与项目看板联动：补齐 `TaskCenterPageController` 与 `task-center.html`，统一入口查看项目/任务/会议状态。
+- 增强项目与任务关联查询能力：扩展 `ProjectService`、`TaskService`、Repository 查询与模板展示，提升进度跟踪与回溯效率。
 
 ## 运行环境
 
