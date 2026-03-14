@@ -183,6 +183,12 @@ public class TaskService {
         return transitionStatus(taskId, TaskStatus.CANCELLED, request.getOperatorName(), request.getReason(), null, null);
     }
 
+    @Transactional
+    public void deleteTask(Long taskId) {
+        Task task = getTask(taskId);
+        taskRepository.delete(task);
+    }
+
     private Task transitionStatus(Long taskId,
                                   TaskStatus to,
                                   String operatorName,

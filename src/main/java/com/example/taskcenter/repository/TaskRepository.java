@@ -2,6 +2,7 @@ package com.example.taskcenter.repository;
 
 import com.example.taskcenter.entity.Task;
 import com.example.taskcenter.model.TaskStatus;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -38,6 +39,14 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     long countByStatusAndActualFinishAtBetween(TaskStatus status, LocalDateTime start, LocalDateTime end);
 
     boolean existsByTaskCode(String taskCode);
+
+    @Modifying
+    @Query("update Task t set t.parentTask = null where t.project.id = :projectId")
+    int clearParentTaskByProjectId(Long projectId);
+
+    @Modifying
+    @Query("delete from Task t where t.project.id = :projectId")
+    int deleteByProjectId(Long projectId);
 
     @Query("""
             select t.project.id as projectId, count(t.id) as total

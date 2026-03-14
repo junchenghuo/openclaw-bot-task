@@ -7,6 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class TaskPageController {
@@ -29,5 +31,12 @@ public class TaskPageController {
         model.addAttribute("logs", taskLogService.listTaskLogs(id));
         model.addAttribute("events", taskEventService.listTaskEvents(id));
         return "task-detail";
+    }
+
+    @PostMapping("/tasks/{id}/delete")
+    public String deleteTask(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+        taskService.deleteTask(id);
+        redirectAttributes.addFlashAttribute("toastMessage", "任务已删除");
+        return "redirect:/task-center";
     }
 }

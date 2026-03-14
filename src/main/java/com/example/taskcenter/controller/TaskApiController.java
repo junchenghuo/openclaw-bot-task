@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -113,6 +114,13 @@ public class TaskApiController {
                                                 @Valid @RequestBody CancelTaskRequest body,
                                                 HttpServletRequest request) {
         return ApiResponse.success(TaskResponse.from(taskService.cancelTask(id, body)), RequestIdSupport.getOrCreate(request));
+    }
+
+    @Operation(summary = "删除任务", description = "删除单条任务及其日志和事件")
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteTask(@PathVariable("id") Long id, HttpServletRequest request) {
+        taskService.deleteTask(id);
+        return ApiResponse.success(null, RequestIdSupport.getOrCreate(request));
     }
 
     @Operation(summary = "查询任务日志", description = "按任务ID查询日志")

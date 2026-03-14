@@ -68,6 +68,23 @@ public class ProjectMeetingService {
                 .toList();
     }
 
+    public List<ProjectMeetingResponse> listMeetings(Long projectId, MeetingStatus status) {
+        List<ProjectMeeting> meetings;
+        if (projectId != null && status != null) {
+            projectService.getProject(projectId);
+            meetings = projectMeetingRepository.findByProject_IdAndStatusOrderByCreatedAtDesc(projectId, status);
+        } else if (projectId != null) {
+            projectService.getProject(projectId);
+            meetings = projectMeetingRepository.findByProject_IdOrderByCreatedAtDesc(projectId);
+        } else if (status != null) {
+            meetings = projectMeetingRepository.findByStatusOrderByCreatedAtDesc(status);
+        } else {
+            meetings = projectMeetingRepository.findAllByOrderByCreatedAtDesc();
+        }
+
+        return meetings.stream().map(this::toResponse).toList();
+    }
+
     public ProjectMeetingResponse getMeeting(Long projectId, Long meetingId) {
         return toResponse(getMeetingInProject(projectId, meetingId));
     }

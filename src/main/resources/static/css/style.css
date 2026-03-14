@@ -238,6 +238,40 @@ th {
     margin-bottom: 12px;
 }
 
+.actions-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.inline-form {
+    margin: 0;
+}
+
+.danger-btn {
+    border: 1px solid #efb5b5;
+    background: #fff1f1;
+    color: #9d3030;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+
+.danger-btn:hover {
+    background: #ffe6e6;
+}
+
+.toast {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #b8e1c4;
+    background: #ecf9f0;
+    color: #2e6e43;
+}
+
 select {
     border: 1px solid var(--border);
     border-radius: 8px;

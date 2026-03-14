@@ -177,6 +177,7 @@
 - `GET /api/projects`：项目列表
 - `GET /api/projects/{id}`：项目详情
 - `POST /api/projects`：创建项目并自动初始化目录（`work/memory/wbs/meetings/meta`）
+- `DELETE /api/projects/{id}`：删除项目（会级联删除该项目下任务与会议）
 
 ### 6.2 任务查询
 
@@ -189,6 +190,7 @@
 
 - `POST /api/tasks`：创建任务（初始状态 `PENDING`）
 - `PUT /api/tasks/{id}`：更新任务基础字段
+- `DELETE /api/tasks/{id}`：删除单条任务（会一并删除日志与事件）
 - `POST /api/tasks/{id}/start`：开始/恢复执行
 - `POST /api/tasks/{id}/block`：标记阻塞
 - `POST /api/tasks/{id}/complete`：标记完成

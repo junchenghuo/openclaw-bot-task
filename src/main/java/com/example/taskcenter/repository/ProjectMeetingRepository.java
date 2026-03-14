@@ -9,7 +9,11 @@ import java.util.List;
 
 public interface ProjectMeetingRepository extends JpaRepository<ProjectMeeting, Long> {
     List<ProjectMeeting> findByProject_IdOrderByCreatedAtDesc(Long projectId);
+    List<ProjectMeeting> findAllByOrderByCreatedAtDesc();
+    List<ProjectMeeting> findByStatusOrderByCreatedAtDesc(MeetingStatus status);
+    List<ProjectMeeting> findByProject_IdAndStatusOrderByCreatedAtDesc(Long projectId, MeetingStatus status);
     boolean existsByMeetingCode(String meetingCode);
+    void deleteByProject_Id(Long projectId);
 
     long countByStatus(MeetingStatus status);
 

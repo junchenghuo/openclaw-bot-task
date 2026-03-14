@@ -4,7 +4,9 @@ import com.example.taskcenter.dto.request.CreateProjectRequest;
 import com.example.taskcenter.entity.Project;
 import com.example.taskcenter.exception.BusinessException;
 import com.example.taskcenter.exception.ErrorCodes;
+import com.example.taskcenter.repository.ProjectMeetingRepository;
 import com.example.taskcenter.repository.ProjectRepository;
+import com.example.taskcenter.repository.TaskRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,11 +19,17 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectDirectoryService projectDirectoryService;
+    private final TaskRepository taskRepository;
+    private final ProjectMeetingRepository projectMeetingRepository;
 
     public ProjectService(ProjectRepository projectRepository,
-                          ProjectDirectoryService projectDirectoryService) {
+                          ProjectDirectoryService projectDirectoryService,
+                          TaskRepository taskRepository,
+                          ProjectMeetingRepository projectMeetingRepository) {
         this.projectRepository = projectRepository;
         this.projectDirectoryService = projectDirectoryService;
+        this.taskRepository = taskRepository;
+        this.projectMeetingRepository = projectMeetingRepository;
     }
 
     public List<Project> listProjects() {
@@ -57,6 +65,17 @@ public class ProjectService {
         project.setWorkspacePath(projectPaths.workspacePath());
         project.setMemoryPath(projectPaths.memoryPath());
         return projectRepository.save(project);
+    }
+
+    @Transactional
+    public void deleteProject(Long projectId) {
+        Project project = getProject(projectId);
+        if ("DAILY_WORK".equalsIgnoreCase(project.getProjectCode())
+                || "日常工作".equals(project.getProjectName())
+                || "异常工作".equals(project.getProjectName())) {
+            throw new IllegalArgumentException("该项目为保留项目，不允许删除");
+        }
+        projectRepository.delete(project);
     }
 
     private Project ensureProjectDirectories(Project project) {

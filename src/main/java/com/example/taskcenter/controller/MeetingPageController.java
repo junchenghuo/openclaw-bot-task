@@ -2,6 +2,7 @@ package com.example.taskcenter.controller;
 
 import com.example.taskcenter.dto.response.ProjectMeetingResponse;
 import com.example.taskcenter.entity.Project;
+import com.example.taskcenter.model.MeetingStatus;
 import com.example.taskcenter.service.ProjectMeetingService;
 import com.example.taskcenter.service.ProjectService;
 import org.springframework.stereotype.Controller;
@@ -23,23 +24,21 @@ public class MeetingPageController {
     }
 
     @GetMapping("/meetings")
-    public String meetings(@RequestParam(value = "projectId", required = false) Long projectId, Model model) {
+    public String meetings(@RequestParam(value = "projectId", required = false) Long projectId,
+                           @RequestParam(value = "status", required = false) MeetingStatus status,
+                           Model model) {
         List<Project> projects = projectService.listProjects();
-        Long selectedProjectId = projectId;
-        if (selectedProjectId == null && !projects.isEmpty()) {
-            selectedProjectId = projects.get(0).getId();
-        }
-
         Project selectedProject = null;
-        List<ProjectMeetingResponse> meetings = List.of();
-        if (selectedProjectId != null) {
-            selectedProject = projectService.getProject(selectedProjectId);
-            meetings = projectMeetingService.listMeetings(selectedProjectId);
+        if (projectId != null) {
+            selectedProject = projectService.getProject(projectId);
         }
+        List<ProjectMeetingResponse> meetings = projectMeetingService.listMeetings(projectId, status);
 
         model.addAttribute("projects", projects);
         model.addAttribute("selectedProject", selectedProject);
-        model.addAttribute("selectedProjectId", selectedProjectId);
+        model.addAttribute("selectedProjectId", projectId);
+        model.addAttribute("status", status);
+        model.addAttribute("allMeetingStatuses", MeetingStatus.values());
         model.addAttribute("meetings", meetings);
         return "meetings";
     }

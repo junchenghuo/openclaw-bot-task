@@ -112,3 +112,15 @@ CREATE TABLE IF NOT EXISTS meeting_vote (
 );
 
 CREATE INDEX IF NOT EXISTS idx_meeting_vote_meeting_id ON meeting_vote(meeting_id);
+
+ALTER TABLE task DROP CONSTRAINT IF EXISTS fk_task_project_cascade;
+ALTER TABLE task DROP CONSTRAINT IF EXISTS task_project_id_fkey;
+ALTER TABLE task
+    ADD CONSTRAINT fk_task_project_cascade
+        FOREIGN KEY (project_id) REFERENCES project(id) ON DELETE CASCADE;
+
+ALTER TABLE project_meeting DROP CONSTRAINT IF EXISTS fk_project_meeting_project_cascade;
+ALTER TABLE project_meeting DROP CONSTRAINT IF EXISTS project_meeting_project_id_fkey;
+ALTER TABLE project_meeting
+    ADD CONSTRAINT fk_project_meeting_project_cascade
+        FOREIGN KEY (project_id) REFERENCES project(id) ON DELETE CASCADE;

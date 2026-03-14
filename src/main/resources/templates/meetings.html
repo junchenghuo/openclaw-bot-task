@@ -17,6 +17,7 @@
         <nav class="main-nav">
             <a class="nav-link" href="/">数据大盘</a>
             <a class="nav-link" href="/projects">项目中心</a>
+            <a class="nav-link" href="/task-center">任务中心</a>
             <a class="nav-link is-active" href="/meetings">会议中心</a>
             <a class="nav-link" href="/monitor">系统监控</a>
             <a class="nav-link nav-api" href="/swagger-ui.html">API 文档</a>
@@ -27,11 +28,20 @@
         <form class="toolbar" method="get" action="/meetings">
             <label for="projectId">选择项目</label>
             <select id="projectId" name="projectId" onchange="this.form.submit()">
-                <option th:if="${#lists.isEmpty(projects)}" value="">暂无项目</option>
+                <option value="">全部项目</option>
                 <option th:each="p : ${projects}"
                         th:value="${p.id}"
                         th:text="${p.projectName}"
                         th:selected="${selectedProjectId != null and selectedProjectId == p.id}"></option>
+            </select>
+
+            <label for="status">状态筛选</label>
+            <select id="status" name="status" onchange="this.form.submit()">
+                <option value="">全部状态</option>
+                <option th:each="s : ${allMeetingStatuses}"
+                        th:value="${s}"
+                        th:text="${@displayText.meetingStatus(s)}"
+                        th:selected="${status != null and status.name() == s.name()}"></option>
             </select>
         </form>
 
@@ -43,6 +53,7 @@
             <thead>
             <tr>
                 <th>会议编号</th>
+                <th>所属项目</th>
                 <th>主题</th>
                 <th>组织者</th>
                 <th>状态</th>
@@ -53,10 +64,11 @@
             </thead>
             <tbody>
             <tr th:if="${#lists.isEmpty(meetings)}">
-                <td colspan="7">当前项目暂无会议记录</td>
+                <td colspan="8">当前项目暂无会议记录</td>
             </tr>
             <tr th:each="meeting : ${meetings}">
                 <td th:text="${meeting.meetingCode}">MEET-xxx</td>
+                <td th:text="${meeting.projectName}">日常工作</td>
                 <td>
                     <button type="button"
                             class="topic-link"
@@ -84,6 +96,7 @@
 
             <div class="modal-body">
                 <p><strong>会议编号：</strong><span th:text="${meeting.meetingCode}"></span></p>
+                <p><strong>所属项目：</strong><span th:text="${meeting.projectName}"></span></p>
                 <p><strong>组织者：</strong><span th:text="${meeting.organizerName}"></span></p>
                 <p><strong>状态：</strong><span class="status" th:classappend="${@displayText.meetingStatusClass(meeting.status)}" th:text="${@displayText.meetingStatus(meeting.status)}"></span></p>
                 <p><strong>计划时间：</strong><span th:text="${@displayText.dateTime(meeting.scheduledAt)}"></span></p>

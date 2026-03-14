@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import java.util.List;
 
@@ -45,5 +46,12 @@ public class ProjectApiController {
     public ApiResponse<ProjectResponse> createProject(@Valid @RequestBody CreateProjectRequest body,
                                                       HttpServletRequest request) {
         return ApiResponse.success(ProjectResponse.from(projectService.createProject(body)), RequestIdSupport.getOrCreate(request));
+    }
+
+    @Operation(summary = "删除项目", description = "删除项目及其下任务与会议")
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteProject(@PathVariable("id") Long id, HttpServletRequest request) {
+        projectService.deleteProject(id);
+        return ApiResponse.success(null, RequestIdSupport.getOrCreate(request));
     }
 }
