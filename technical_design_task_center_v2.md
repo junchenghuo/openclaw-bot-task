@@ -241,34 +241,34 @@
 ### 7.1 状态枚举
 
 ```text
-PENDING
-RUNNING
-BLOCKED
-COMPLETED
-FAILED
-CANCELLED
+待处理
+进行中
+阻塞
+已完成
+失败
+已取消
 ```
 
 ### 7.2 状态说明
 
 | 状态 | 说明 |
 |---|---|
-| PENDING | 待处理 |
-| RUNNING | 执行中 |
-| BLOCKED | 已阻塞，等待外部处理 |
-| COMPLETED | 已完成 |
-| FAILED | 已失败 |
-| CANCELLED | 已取消 |
+| 待处理 | 待处理 |
+| 进行中 | 执行中 |
+| 阻塞 | 已阻塞，等待外部处理 |
+| 已完成 | 已完成 |
+| 失败 | 已失败 |
+| 已取消 | 已取消 |
 
 ### 7.3 允许的状态流转
 
 ```text
-PENDING   -> RUNNING / CANCELLED
-RUNNING   -> COMPLETED / FAILED / BLOCKED / CANCELLED
-BLOCKED   -> RUNNING / FAILED / CANCELLED
-FAILED    -> RUNNING（可选，表示重试）
-COMPLETED -> 结束
-CANCELLED -> 结束
+待处理   -> 进行中 / 已取消
+进行中   -> 已完成 / 失败 / 阻塞 / 已取消
+阻塞   -> 进行中 / 失败 / 已取消
+失败    -> 进行中（可选，表示重试）
+已完成 -> 结束
+已取消 -> 结束
 ```
 
 ---
@@ -368,7 +368,7 @@ CREATE TABLE task (
     title               VARCHAR(200) NOT NULL,
     task_type           VARCHAR(64) NOT NULL,
     status              VARCHAR(32) NOT NULL,
-    priority            VARCHAR(32) NOT NULL DEFAULT 'MEDIUM',
+    priority            VARCHAR(32) NOT NULL DEFAULT '中',
     detail              TEXT,
     initiator           VARCHAR(100),
     owner_name          VARCHAR(100),
@@ -469,7 +469,7 @@ GET /api/projects/{id}
 #### 查询任务列表
 
 ```http
-GET /api/tasks?projectId=1&status=PENDING
+GET /api/tasks?projectId=1&status=待处理
 ```
 
 #### 查询任务详情
@@ -491,8 +491,8 @@ POST /api/tasks
   "projectId": 1,
   "parentTaskId": null,
   "title": "整理需求文档",
-  "taskType": "DOCUMENT",
-  "priority": "HIGH",
+  "taskType": "文档",
+  "priority": "高",
   "detail": "需要完成需求文档初稿",
   "initiator": "张三",
   "ownerName": "李四",

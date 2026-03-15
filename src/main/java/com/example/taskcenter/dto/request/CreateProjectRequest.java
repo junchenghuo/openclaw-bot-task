@@ -1,5 +1,6 @@
 package com.example.taskcenter.dto.request;
 
+import com.example.taskcenter.model.ProjectStatus;
 import jakarta.validation.constraints.NotBlank;
 
 public class CreateProjectRequest {
@@ -10,7 +11,7 @@ public class CreateProjectRequest {
     @NotBlank(message = "projectName 不能为空")
     private String projectName;
 
-    private String status;
+    private ProjectStatus status;
 
     private String description;
 
@@ -34,11 +35,11 @@ public class CreateProjectRequest {
         this.projectName = projectName;
     }
 
-    public String getStatus() {
+    public ProjectStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(ProjectStatus status) {
         this.status = status;
     }
 

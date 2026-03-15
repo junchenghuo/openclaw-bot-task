@@ -49,7 +49,7 @@ public class ProjectMeeting {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
-    private MeetingStatus status = MeetingStatus.VOTING;
+    private MeetingStatus status = MeetingStatus.投票中;
 
     @Column(name = "scheduled_at")
     private LocalDateTime scheduledAt;

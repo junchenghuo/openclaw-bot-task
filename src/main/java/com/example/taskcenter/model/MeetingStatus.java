@@ -1,7 +1,7 @@
 package com.example.taskcenter.model;
 
 public enum MeetingStatus {
-    VOTING,
-    DECIDED,
-    CANCELLED
+    投票中,
+    已决策,
+    已取消
 }

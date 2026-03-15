@@ -29,3 +29,14 @@ management:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+outbox:
+  dispatch:
+    fixed-delay-ms: ${OUTBOX_DISPATCH_DELAY_MS:5000}
+
+mattermost:
+  base-url: ${MM_BASE_URL:http://localhost:8065}
+  bot-token: ${MM_BOT_TOKEN:}
+  fallback-bot-token: ${MM_FALLBACK_BOT_TOKEN:}
+  alert-channel-id: ${MM_ALERT_CHANNEL_ID:4odsfctn8trymycthdk9qafqjr}
+  alert-mentions: ${MM_ALERT_MENTIONS:@bot-leader @admin}

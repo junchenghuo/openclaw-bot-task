@@ -6,8 +6,11 @@ import com.example.taskcenter.dto.request.CompleteTaskRequest;
 import com.example.taskcenter.dto.request.CreateTaskRequest;
 import com.example.taskcenter.dto.request.FailTaskRequest;
 import com.example.taskcenter.dto.request.StartTaskRequest;
+import com.example.taskcenter.dto.request.CreateTaskAndDispatchRequest;
+import com.example.taskcenter.dto.request.SubmitDeliveryAndCompleteRequest;
 import com.example.taskcenter.dto.request.UpdateTaskRequest;
 import com.example.taskcenter.dto.response.ApiResponse;
+import com.example.taskcenter.dto.response.OutboxEventResponse;
 import com.example.taskcenter.dto.response.TaskEventResponse;
 import com.example.taskcenter.dto.response.TaskLogResponse;
 import com.example.taskcenter.dto.response.TaskResponse;
@@ -15,6 +18,7 @@ import com.example.taskcenter.model.TaskStatus;
 import com.example.taskcenter.service.TaskEventService;
 import com.example.taskcenter.service.TaskLogService;
 import com.example.taskcenter.service.TaskService;
+import com.example.taskcenter.service.TaskAtomicService;
 import com.example.taskcenter.support.RequestIdSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,13 +40,16 @@ import java.util.List;
 public class TaskApiController {
 
     private final TaskService taskService;
+    private final TaskAtomicService taskAtomicService;
     private final TaskLogService taskLogService;
     private final TaskEventService taskEventService;
 
     public TaskApiController(TaskService taskService,
+                             TaskAtomicService taskAtomicService,
                              TaskLogService taskLogService,
                              TaskEventService taskEventService) {
         this.taskService = taskService;
+        this.taskAtomicService = taskAtomicService;
         this.taskLogService = taskLogService;
         this.taskEventService = taskEventService;
     }
@@ -62,10 +69,35 @@ public class TaskApiController {
         return ApiResponse.success(TaskResponse.from(taskService.getTask(id)), RequestIdSupport.getOrCreate(request));
     }
 
-    @Operation(summary = "创建任务", description = "创建一条 PENDING 状态任务")
+    @Operation(summary = "创建任务", description = "创建一条 待处理 状态任务")
     @PostMapping
     public ApiResponse<TaskResponse> createTask(@Valid @RequestBody CreateTaskRequest body, HttpServletRequest request) {
         return ApiResponse.success(TaskResponse.from(taskService.createTask(body)), RequestIdSupport.getOrCreate(request));
+    }
+
+    @Operation(summary = "原子创建并派单", description = "事务内创建任务+写入派单Outbox事件")
+    @PostMapping("/atomic/create-dispatch")
+    public ApiResponse<AtomicTaskResult> createTaskAndDispatch(@Valid @RequestBody CreateTaskAndDispatchRequest body,
+                                                               HttpServletRequest request) {
+        TaskAtomicService.AtomicCreateResult result = taskAtomicService.createTaskAndDispatch(body);
+        AtomicTaskResult data = new AtomicTaskResult(
+                TaskResponse.from(result.task()),
+                OutboxEventResponse.from(result.outboxEvent())
+        );
+        return ApiResponse.success(data, RequestIdSupport.getOrCreate(request));
+    }
+
+    @Operation(summary = "原子交付并完成", description = "事务内完成任务+写入完成通知Outbox事件（必须含附件fileIds）")
+    @PostMapping("/{id}/atomic/submit-complete")
+    public ApiResponse<AtomicTaskResult> submitDeliveryAndComplete(@PathVariable("id") Long id,
+                                                                   @Valid @RequestBody SubmitDeliveryAndCompleteRequest body,
+                                                                   HttpServletRequest request) {
+        TaskAtomicService.AtomicCompleteResult result = taskAtomicService.submitDeliveryAndComplete(id, body);
+        AtomicTaskResult data = new AtomicTaskResult(
+                TaskResponse.from(result.task()),
+                OutboxEventResponse.from(result.outboxEvent())
+        );
+        return ApiResponse.success(data, RequestIdSupport.getOrCreate(request));
     }
 
     @Operation(summary = "更新任务", description = "更新任务的基础字段，终态任务不可编辑")
@@ -76,7 +108,7 @@ public class TaskApiController {
         return ApiResponse.success(TaskResponse.from(taskService.updateTask(id, body)), RequestIdSupport.getOrCreate(request));
     }
 
-    @Operation(summary = "开始任务", description = "PENDING/BLOCKED/FAILED -> RUNNING")
+    @Operation(summary = "开始任务", description = "待处理/阻塞/失败 -> 进行中")
     @PostMapping("/{id}/start")
     public ApiResponse<TaskResponse> startTask(@PathVariable("id") Long id,
                                                @Valid @RequestBody StartTaskRequest body,
@@ -84,7 +116,7 @@ public class TaskApiController {
         return ApiResponse.success(TaskResponse.from(taskService.startTask(id, body)), RequestIdSupport.getOrCreate(request));
     }
 
-    @Operation(summary = "阻塞任务", description = "RUNNING -> BLOCKED")
+    @Operation(summary = "阻塞任务", description = "进行中 -> 阻塞")
     @PostMapping("/{id}/block")
     public ApiResponse<TaskResponse> blockTask(@PathVariable("id") Long id,
                                                @Valid @RequestBody BlockTaskRequest body,
@@ -92,7 +124,7 @@ public class TaskApiController {
         return ApiResponse.success(TaskResponse.from(taskService.blockTask(id, body)), RequestIdSupport.getOrCreate(request));
     }
 
-    @Operation(summary = "完成任务", description = "RUNNING -> COMPLETED")
+    @Operation(summary = "完成任务", description = "进行中 -> 已完成")
     @PostMapping("/{id}/complete")
     public ApiResponse<TaskResponse> completeTask(@PathVariable("id") Long id,
                                                   @Valid @RequestBody CompleteTaskRequest body,
@@ -100,7 +132,7 @@ public class TaskApiController {
         return ApiResponse.success(TaskResponse.from(taskService.completeTask(id, body)), RequestIdSupport.getOrCreate(request));
     }
 
-    @Operation(summary = "失败任务", description = "RUNNING/BLOCKED -> FAILED")
+    @Operation(summary = "失败任务", description = "进行中/阻塞 -> 失败")
     @PostMapping("/{id}/fail")
     public ApiResponse<TaskResponse> failTask(@PathVariable("id") Long id,
                                               @Valid @RequestBody FailTaskRequest body,
@@ -108,7 +140,7 @@ public class TaskApiController {
         return ApiResponse.success(TaskResponse.from(taskService.failTask(id, body)), RequestIdSupport.getOrCreate(request));
     }
 
-    @Operation(summary = "取消任务", description = "PENDING/RUNNING/BLOCKED -> CANCELLED")
+    @Operation(summary = "取消任务", description = "待处理/进行中/阻塞 -> 已取消")
     @PostMapping("/{id}/cancel")
     public ApiResponse<TaskResponse> cancelTask(@PathVariable("id") Long id,
                                                 @Valid @RequestBody CancelTaskRequest body,
@@ -135,5 +167,8 @@ public class TaskApiController {
     public ApiResponse<List<TaskEventResponse>> getTaskEvents(@PathVariable("id") Long id, HttpServletRequest request) {
         List<TaskEventResponse> data = taskEventService.listTaskEvents(id).stream().map(TaskEventResponse::from).toList();
         return ApiResponse.success(data, RequestIdSupport.getOrCreate(request));
+    }
+
+    public record AtomicTaskResult(TaskResponse task, OutboxEventResponse outbox) {
     }
 }

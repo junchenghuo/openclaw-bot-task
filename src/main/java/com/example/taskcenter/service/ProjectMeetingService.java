@@ -100,7 +100,7 @@ public class ProjectMeetingService {
         meeting.setTopic(request.getTopic().trim());
         meeting.setProblemStatement(request.getProblemStatement());
         meeting.setOrganizerName(request.getOrganizerName().trim());
-        meeting.setStatus(MeetingStatus.VOTING);
+        meeting.setStatus(MeetingStatus.投票中);
         meeting.setScheduledAt(request.getScheduledAt());
         meeting.setDecisionOptionsJson(toJsonString(request.getDecisionOptions()));
 
@@ -125,7 +125,7 @@ public class ProjectMeetingService {
     @Transactional
     public ProjectMeetingResponse castVote(Long projectId, Long meetingId, CastMeetingVoteRequest request) {
         ProjectMeeting meeting = getMeetingInProject(projectId, meetingId);
-        if (meeting.getStatus() != MeetingStatus.VOTING) {
+        if (meeting.getStatus() != MeetingStatus.投票中) {
             throw new IllegalStateException("会议不在投票阶段，无法投票");
         }
 
@@ -151,7 +151,7 @@ public class ProjectMeetingService {
     @Transactional
     public ProjectMeetingResponse closeMeeting(Long projectId, Long meetingId, CloseMeetingRequest request) {
         ProjectMeeting meeting = getMeetingInProject(projectId, meetingId);
-        if (meeting.getStatus() != MeetingStatus.VOTING) {
+        if (meeting.getStatus() != MeetingStatus.投票中) {
             throw new IllegalStateException("会议不在投票阶段，无法结束");
         }
 
@@ -163,7 +163,7 @@ public class ProjectMeetingService {
         List<String> options = parseDecisionOptions(meeting.getDecisionOptionsJson());
         String decisionOption = resolveDecisionOption(request, votes, options);
 
-        meeting.setStatus(MeetingStatus.DECIDED);
+        meeting.setStatus(MeetingStatus.已决策);
         meeting.setDecisionOption(decisionOption);
         meeting.setDecisionSummary(request.getDecisionSummary().trim());
         meeting.setMinutesJson(buildMinutesJson(meeting, request.getOperatorName().trim(), votes, decisionOption));

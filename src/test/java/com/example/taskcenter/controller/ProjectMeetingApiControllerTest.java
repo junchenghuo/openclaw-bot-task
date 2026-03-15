@@ -65,7 +65,7 @@ class ProjectMeetingApiControllerTest {
                         .content(payload))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.status").value("VOTING"))
+                .andExpect(jsonPath("$.data.status").value("投票中"))
                 .andExpect(jsonPath("$.data.participants.length()").value(2));
     }
 
@@ -109,7 +109,7 @@ class ProjectMeetingApiControllerTest {
                         .content(closePayload))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.status").value("DECIDED"))
+                .andExpect(jsonPath("$.data.status").value("已决策"))
                 .andExpect(jsonPath("$.data.decisionOption").value("本周发布"))
                 .andReturn()
                 .getResponse()

@@ -51,7 +51,7 @@ public class Task {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
-    private TaskPriority priority = TaskPriority.MEDIUM;
+    private TaskPriority priority = TaskPriority.中;
 
     @Column(columnDefinition = "TEXT")
     private String detail;

@@ -21,27 +21,14 @@ public class DisplayTextService {
             return "-";
         }
         String code = status.toString();
-        return switch (code) {
-            case "PENDING" -> "待处理";
-            case "RUNNING" -> "进行中";
-            case "BLOCKED" -> "阻塞";
-            case "COMPLETED" -> "已完成";
-            case "FAILED" -> "失败";
-            case "CANCELLED" -> "已取消";
-            default -> code;
-        };
+        return code;
     }
 
     public String projectStatus(String status) {
         if (status == null || status.isBlank()) {
             return "-";
         }
-        return switch (status) {
-            case "ACTIVE" -> "启用中";
-            case "INACTIVE" -> "未启用";
-            case "ARCHIVED" -> "已归档";
-            default -> status;
-        };
+        return status;
     }
 
     public String taskStatusClass(Object status) {
@@ -50,10 +37,10 @@ public class DisplayTextService {
         }
         String code = status.toString();
         return switch (code) {
-            case "RUNNING", "COMPLETED" -> "status-ok";
-            case "FAILED", "CANCELLED" -> "status-fail";
-            case "BLOCKED" -> "status-warn";
-            case "PENDING" -> "status-pending";
+            case "进行中", "已完成" -> "status-ok";
+            case "失败", "已取消" -> "status-fail";
+            case "阻塞" -> "status-warn";
+            case "待处理" -> "status-pending";
             default -> "status-neutral";
         };
     }
@@ -63,9 +50,9 @@ public class DisplayTextService {
             return "status-neutral";
         }
         return switch (status) {
-            case "ACTIVE" -> "status-ok";
-            case "ARCHIVED" -> "status-warn";
-            case "INACTIVE" -> "status-neutral";
+            case "启用中" -> "status-ok";
+            case "已归档" -> "status-warn";
+            case "未启用" -> "status-neutral";
             default -> "status-neutral";
         };
     }
@@ -75,9 +62,7 @@ public class DisplayTextService {
             return "-";
         }
         return switch (status.toString()) {
-            case "VOTING" -> "投票中";
-            case "DECIDED" -> "已决策";
-            case "CANCELLED" -> "已取消";
+            case "投票中", "已决策", "已取消" -> status.toString();
             default -> status.toString();
         };
     }
@@ -87,9 +72,9 @@ public class DisplayTextService {
             return "status-neutral";
         }
         return switch (status.toString()) {
-            case "VOTING" -> "status-warn";
-            case "DECIDED" -> "status-ok";
-            case "CANCELLED" -> "status-fail";
+            case "投票中" -> "status-warn";
+            case "已决策" -> "status-ok";
+            case "已取消" -> "status-fail";
             default -> "status-neutral";
         };
     }
@@ -106,14 +91,7 @@ public class DisplayTextService {
             return "-";
         }
         return switch (value) {
-            case "GENERAL" -> "通用";
-            case "PROJECT" -> "项目";
-            case "DOCUMENT" -> "文档";
-            case "DEVELOPMENT" -> "开发";
-            case "TEST" -> "测试";
-            case "RESEARCH" -> "调研";
-            case "OPERATION" -> "运维";
-            case "BUGFIX" -> "缺陷修复";
+            case "通用", "项目", "文档", "开发", "测试", "调研", "运维", "缺陷修复" -> value;
             default -> value;
         };
     }
@@ -123,10 +101,7 @@ public class DisplayTextService {
             return "-";
         }
         return switch (value.toString()) {
-            case "LOW" -> "低";
-            case "MEDIUM" -> "中";
-            case "HIGH" -> "高";
-            case "URGENT" -> "紧急";
+            case "低", "中", "高", "紧急" -> value.toString();
             default -> value.toString();
         };
     }

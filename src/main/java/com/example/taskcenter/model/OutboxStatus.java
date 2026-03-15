@@ -1,10 +1,9 @@
 package com.example.taskcenter.model;
 
-public enum TaskStatus {
+public enum OutboxStatus {
     待处理,
-    进行中,
-    阻塞,
-    已完成,
+    处理中,
+    已发送,
     失败,
     已取消
 }

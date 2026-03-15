@@ -1,8 +1,8 @@
 package com.example.taskcenter.model;
 
 public enum TaskPriority {
-    LOW,
-    MEDIUM,
-    HIGH,
-    URGENT
+    低,
+    中,
+    高,
+    紧急
 }

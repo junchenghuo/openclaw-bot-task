@@ -20,8 +20,8 @@ curl -s -X POST "$BASE_URL/api/tasks" \
   -d '{
     "projectId": 1,
     "title": "整理需求文档",
-    "taskType": "DOCUMENT",
-    "priority": "HIGH",
+    "taskType": "文档",
+    "priority": "高",
     "detail": "需要完成需求文档初稿",
     "initiator": "张三",
     "ownerName": "李四",
@@ -40,7 +40,7 @@ curl -s -X PUT "$BASE_URL/api/tasks/$TASK_ID" \
     "operatorName": "李四",
     "ownerName": "王五",
     "detail": "已补充执行方案",
-    "priority": "URGENT"
+    "priority": "紧急"
   }' | jq
 ```
 

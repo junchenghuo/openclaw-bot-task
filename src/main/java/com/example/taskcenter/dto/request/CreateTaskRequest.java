@@ -20,7 +20,7 @@ public class CreateTaskRequest {
     @NotBlank(message = "taskType 不能为空")
     private String taskType;
 
-    private TaskPriority priority = TaskPriority.MEDIUM;
+    private TaskPriority priority = TaskPriority.中;
 
     private String detail;
 

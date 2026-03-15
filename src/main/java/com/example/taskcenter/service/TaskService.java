@@ -14,6 +14,7 @@ import com.example.taskcenter.exception.ErrorCodes;
 import com.example.taskcenter.model.TaskPriority;
 import com.example.taskcenter.model.TaskStatus;
 import com.example.taskcenter.repository.TaskRepository;
+import com.example.taskcenter.support.SnowflakeIdGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,15 +23,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class TaskService {
-
-    private static final DateTimeFormatter CODE_TIME = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final TaskRepository taskRepository;
     private final ProjectService projectService;
@@ -38,19 +34,22 @@ public class TaskService {
     private final TaskLogService taskLogService;
     private final TaskEventService taskEventService;
     private final ObjectMapper objectMapper;
+    private final SnowflakeIdGenerator snowflakeIdGenerator;
 
     public TaskService(TaskRepository taskRepository,
                        ProjectService projectService,
                        TaskStatusMachine taskStatusMachine,
                        TaskLogService taskLogService,
                        TaskEventService taskEventService,
-                       ObjectMapper objectMapper) {
+                       ObjectMapper objectMapper,
+                       SnowflakeIdGenerator snowflakeIdGenerator) {
         this.taskRepository = taskRepository;
         this.projectService = projectService;
         this.taskStatusMachine = taskStatusMachine;
         this.taskLogService = taskLogService;
         this.taskEventService = taskEventService;
         this.objectMapper = objectMapper;
+        this.snowflakeIdGenerator = snowflakeIdGenerator;
     }
 
     public List<Task> listTasks(Long projectId, TaskStatus status) {
@@ -92,7 +91,7 @@ public class TaskService {
             if (request.getTaskType().isBlank()) {
                 throw new IllegalArgumentException("taskType 不能为空字符串");
             }
-            task.setTaskType(request.getTaskType());
+            task.setTaskType(normalizeTaskType(request.getTaskType()));
             changed = true;
         }
         if (request.getPriority() != null) {
@@ -121,7 +120,7 @@ public class TaskService {
         }
 
         Task saved = taskRepository.save(task);
-        taskEventService.createEvent(saved, "UPDATED", task.getStatus().name(), task.getStatus().name(),
+        taskEventService.createEvent(saved, "更新", task.getStatus().name(), task.getStatus().name(),
                 request.getOperatorName(), "任务信息已更新");
         taskLogService.createLog(saved, "UPDATE", "任务基础信息已更新", null);
         return saved;
@@ -140,9 +139,9 @@ public class TaskService {
         task.setProject(project);
         task.setParentTask(parentTask);
         task.setTitle(request.getTitle());
-        task.setTaskType(request.getTaskType());
-        task.setStatus(TaskStatus.PENDING);
-        task.setPriority(request.getPriority() == null ? TaskPriority.MEDIUM : request.getPriority());
+        task.setTaskType(normalizeTaskType(request.getTaskType()));
+        task.setStatus(TaskStatus.待处理);
+        task.setPriority(request.getPriority() == null ? TaskPriority.中 : request.getPriority());
         task.setDetail(request.getDetail());
         task.setInitiator(request.getInitiator());
         task.setOwnerName(request.getOwnerName());
@@ -150,37 +149,37 @@ public class TaskService {
         task.setInputJson(toJsonString(request.getInput()));
         Task saved = taskRepository.save(task);
 
-        taskEventService.createEvent(saved, "CREATED", null, TaskStatus.PENDING.name(),
-                request.getInitiator(), "Task created");
+        taskEventService.createEvent(saved, "创建", null, TaskStatus.待处理.name(),
+                request.getInitiator(), "任务已创建");
         taskLogService.createLog(saved, "SYSTEM", "任务已创建", saved.getInputJson());
         return saved;
     }
 
     @Transactional
     public Task startTask(Long taskId, StartTaskRequest request) {
-        return transitionStatus(taskId, TaskStatus.RUNNING, request.getOperatorName(), null, null, null);
+        return transitionStatus(taskId, TaskStatus.进行中, request.getOperatorName(), null, null, null);
     }
 
     @Transactional
     public Task blockTask(Long taskId, BlockTaskRequest request) {
-        return transitionStatus(taskId, TaskStatus.BLOCKED, request.getOperatorName(),
+        return transitionStatus(taskId, TaskStatus.阻塞, request.getOperatorName(),
                 request.getBlockReason(), request.getBlockerContact(), null);
     }
 
     @Transactional
     public Task completeTask(Long taskId, CompleteTaskRequest request) {
-        return transitionStatus(taskId, TaskStatus.COMPLETED, request.getOperatorName(),
+        return transitionStatus(taskId, TaskStatus.已完成, request.getOperatorName(),
                 "任务完成", null, toJsonString(request.getOutput()));
     }
 
     @Transactional
     public Task failTask(Long taskId, FailTaskRequest request) {
-        return transitionStatus(taskId, TaskStatus.FAILED, request.getOperatorName(), request.getReason(), null, null);
+        return transitionStatus(taskId, TaskStatus.失败, request.getOperatorName(), request.getReason(), null, null);
     }
 
     @Transactional
     public Task cancelTask(Long taskId, CancelTaskRequest request) {
-        return transitionStatus(taskId, TaskStatus.CANCELLED, request.getOperatorName(), request.getReason(), null, null);
+        return transitionStatus(taskId, TaskStatus.已取消, request.getOperatorName(), request.getReason(), null, null);
     }
 
     @Transactional
@@ -200,36 +199,35 @@ public class TaskService {
         taskStatusMachine.assertTransitionAllowed(from, to);
         task.setStatus(to);
 
-        if (to == TaskStatus.RUNNING && task.getActualStartAt() == null) {
+        if (to == TaskStatus.进行中 && task.getActualStartAt() == null) {
             task.setActualStartAt(LocalDateTime.now());
         }
-        if (to == TaskStatus.BLOCKED) {
+        if (to == TaskStatus.阻塞) {
             task.setBlockerContact(blockerContact);
             task.setBlockReason(note);
         } else {
             task.setBlockerContact(null);
             task.setBlockReason(null);
         }
-        if (to == TaskStatus.COMPLETED) {
+        if (to == TaskStatus.已完成) {
             task.setOutputJson(outputJson);
         }
-        if (to == TaskStatus.COMPLETED || to == TaskStatus.FAILED || to == TaskStatus.CANCELLED) {
+        if (to == TaskStatus.已完成 || to == TaskStatus.失败 || to == TaskStatus.已取消) {
             task.setActualFinishAt(LocalDateTime.now());
         }
 
         Task saved = taskRepository.save(task);
 
         String eventNote = (note == null || note.isBlank()) ? "状态变更" : note;
-        taskEventService.createEvent(saved, "STATUS_CHANGED", from.name(), to.name(), operatorName, eventNote);
+        taskEventService.createEvent(saved, "状态变更", from.name(), to.name(), operatorName, eventNote);
         taskLogService.createLog(saved, "STATUS", "任务状态由 " + from + " 变更为 " + to, null);
 
         return saved;
     }
 
     private String generateTaskCode() {
-        for (int i = 0; i < 5; i++) {
-            String code = "TASK-" + LocalDateTime.now().format(CODE_TIME)
-                    + "-" + String.format(Locale.ROOT, "%04d", ThreadLocalRandom.current().nextInt(0, 10000));
+        for (int i = 0; i < 3; i++) {
+            String code = "T" + snowflakeIdGenerator.nextId();
             if (!taskRepository.existsByTaskCode(code)) {
                 return code;
             }
@@ -246,5 +244,23 @@ public class TaskService {
         } catch (JsonProcessingException ex) {
             throw new BusinessException(ErrorCodes.INVALID_ARGUMENT, "JSON 字段格式错误", HttpStatus.BAD_REQUEST);
         }
+    }
+
+    private String normalizeTaskType(String taskType) {
+        if (taskType == null) {
+            return null;
+        }
+        String value = taskType.trim();
+        return switch (value) {
+            case "GENERAL" -> "通用";
+            case "PROJECT" -> "项目";
+            case "DOCUMENT" -> "文档";
+            case "DEVELOPMENT" -> "开发";
+            case "TEST" -> "测试";
+            case "RESEARCH" -> "调研";
+            case "OPERATION" -> "运维";
+            case "BUGFIX" -> "缺陷修复";
+            default -> value;
+        };
     }
 }

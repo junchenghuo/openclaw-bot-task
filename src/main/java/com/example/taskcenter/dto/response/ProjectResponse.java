@@ -22,7 +22,7 @@ public record ProjectResponse(
                 project.getId(),
                 project.getProjectCode(),
                 project.getProjectName(),
-                project.getStatus(),
+                project.getStatus() == null ? null : project.getStatus().name(),
                 project.getDescription(),
                 project.getWorkspacePath(),
                 project.getMemoryPath(),

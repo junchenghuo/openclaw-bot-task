@@ -41,6 +41,12 @@
 - 扩展项目模型与数据库结构：`project` 表新增 `mattermost_channel_id`/`mattermost_channel_name`，并对频道 ID 建立唯一索引。
 - 会议详情新增投票汇总字段：在会议响应中返回按选项聚合的票数统计，便于快速判定决策结果。
 
+## 本次改进点（2026-03-16）
+
+- 引入任务派发 Outbox 机制：新增 `outbox_event` 表与事件查询/重放 API，支持消息派发异步重试与可追踪。
+- 新增任务原子接口：支持“创建任务并派发”与“提交产物并完结”一体化执行，减少跨步骤状态不一致。
+- 配置与文档补全 Mattermost 集成参数（`MM_BASE_URL`、Bot Token、告警频道等），并完善 API 示例与设计文档。
+
 ## 运行环境
 
 - JDK 17+
@@ -150,7 +156,7 @@ docker compose up --build -d
 ### 3) 标准执行流程（分派即建单）
 
 1. `GET /api/projects`：解析项目并拿到 `projectId`。
-2. `POST /api/tasks`：创建任务（初始 `PENDING`）。
+2. `POST /api/tasks`：创建任务（初始 `待处理`）。
 3. 返回任务回执给发起人：`taskId`、`taskCode`、项目、负责人、计划完成时间。
 4. 开工时 `POST /api/tasks/{id}/start`。
 5. 推进过程中持续更新（必要时 `PUT /api/tasks/{id}`），并记录关键日志/事件。
@@ -159,7 +165,7 @@ docker compose up --build -d
 ### 4) 跟进与状态管理规则
 
 - 每次状态变化后，都要 `GET /api/tasks/{id}` 二次确认状态一致。
-- 对 `PENDING/RUNNING/BLOCKED/FAILED` 任务进行周期巡检，输出待办清单与风险清单。
+- 对 `待处理/进行中/阻塞/失败` 任务进行周期巡检，输出待办清单与风险清单。
 - 出现 `INVALID_STATUS_TRANSITION` 时，先读取当前状态，再按合法流转重试。
 
 ### 5) 会议决策机制（项目型问题）
@@ -171,14 +177,14 @@ docker compose up --build -d
 
 ### 6) 阻塞/失败升级机制（强制）
 
-1. 任务进入 `BLOCKED` 或 `FAILED` 后，机器人必须第一时间通知 `leader` 介入。
+1. 任务进入 `阻塞` 或 `失败` 后，机器人必须第一时间通知 `leader` 介入。
 2. `leader` 处理后，若仍无法解除阻塞或修复失败，必须升级到管理员（admin）。
 3. 升级信息必须包含：任务编号、当前状态、阻塞/失败原因、已尝试动作、下一步建议。
 
 ### 7) 机器人输出规范
 
-- 分派后必须回执：`已创建任务 TASK-xxx（项目：xxx，负责人：xxx，状态：PENDING）`。
-- 状态变更必须回执：`TASK-xxx 已更新为 RUNNING/BLOCKED/COMPLETED/FAILED`。
+- 分派后必须回执：`已创建任务 TASK-xxx（项目：xxx，负责人：xxx，状态：待处理）`。
+- 状态变更必须回执：`TASK-xxx 已更新为 进行中/阻塞/已完成/失败`。
 - 升级时必须明确：`已升级给 leader` 或 `已升级给管理员`。
 
 ---

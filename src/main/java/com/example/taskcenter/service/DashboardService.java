@@ -39,20 +39,20 @@ public class DashboardService {
         long projectTotal = projectRepository.count();
         long taskTotal = taskRepository.count();
         long meetingTotal = projectMeetingRepository.count();
-        long pendingTotal = taskRepository.countByStatus(TaskStatus.PENDING);
-        long runningTotal = taskRepository.countByStatus(TaskStatus.RUNNING);
-        long completedTotal = taskRepository.countByStatus(TaskStatus.COMPLETED);
-        long failedTotal = taskRepository.countByStatus(TaskStatus.FAILED);
-        long blockedTotal = taskRepository.countByStatus(TaskStatus.BLOCKED);
+        long pendingTotal = taskRepository.countByStatus(TaskStatus.待处理);
+        long runningTotal = taskRepository.countByStatus(TaskStatus.进行中);
+        long completedTotal = taskRepository.countByStatus(TaskStatus.已完成);
+        long failedTotal = taskRepository.countByStatus(TaskStatus.失败);
+        long blockedTotal = taskRepository.countByStatus(TaskStatus.阻塞);
 
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
         LocalDateTime tomorrowStart = todayStart.plusDays(1);
         long meetingTodayTotal = projectMeetingRepository.countByScheduledAtBetween(todayStart, tomorrowStart);
-        long meetingVotingTotal = projectMeetingRepository.countByStatus(MeetingStatus.VOTING);
-        long meetingDecidedTotal = projectMeetingRepository.countByStatus(MeetingStatus.DECIDED);
+        long meetingVotingTotal = projectMeetingRepository.countByStatus(MeetingStatus.投票中);
+        long meetingDecidedTotal = projectMeetingRepository.countByStatus(MeetingStatus.已决策);
         long todayCreatedTotal = taskRepository.countByCreatedAtBetween(todayStart, tomorrowStart);
         long todayCompletedTotal = taskRepository.countByStatusAndActualFinishAtBetween(
-                TaskStatus.COMPLETED, todayStart, tomorrowStart);
+                TaskStatus.已完成, todayStart, tomorrowStart);
 
         Map<Long, String> projectNameMap = projectRepository.findAll().stream()
                 .collect(Collectors.toMap(Project::getId, Project::getProjectName));
@@ -65,12 +65,12 @@ public class DashboardService {
                 .toList();
 
         List<DashboardResponse.NamedCount> statusTaskCounts = List.of(
-                new DashboardResponse.NamedCount(TaskStatus.PENDING.name(), pendingTotal),
-                new DashboardResponse.NamedCount(TaskStatus.RUNNING.name(), runningTotal),
-                new DashboardResponse.NamedCount(TaskStatus.BLOCKED.name(), blockedTotal),
-                new DashboardResponse.NamedCount(TaskStatus.COMPLETED.name(), completedTotal),
-                new DashboardResponse.NamedCount(TaskStatus.FAILED.name(), failedTotal),
-                new DashboardResponse.NamedCount(TaskStatus.CANCELLED.name(), taskRepository.countByStatus(TaskStatus.CANCELLED))
+                new DashboardResponse.NamedCount(TaskStatus.待处理.name(), pendingTotal),
+                new DashboardResponse.NamedCount(TaskStatus.进行中.name(), runningTotal),
+                new DashboardResponse.NamedCount(TaskStatus.阻塞.name(), blockedTotal),
+                new DashboardResponse.NamedCount(TaskStatus.已完成.name(), completedTotal),
+                new DashboardResponse.NamedCount(TaskStatus.失败.name(), failedTotal),
+                new DashboardResponse.NamedCount(TaskStatus.已取消.name(), taskRepository.countByStatus(TaskStatus.已取消))
         );
 
         List<DashboardResponse.DailyCount> recentSevenDays = buildRecentSevenDays();

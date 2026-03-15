@@ -4,6 +4,7 @@ import com.example.taskcenter.dto.request.CreateProjectRequest;
 import com.example.taskcenter.entity.Project;
 import com.example.taskcenter.exception.BusinessException;
 import com.example.taskcenter.exception.ErrorCodes;
+import com.example.taskcenter.model.ProjectStatus;
 import com.example.taskcenter.repository.ProjectMeetingRepository;
 import com.example.taskcenter.repository.ProjectRepository;
 import com.example.taskcenter.repository.TaskRepository;
@@ -122,12 +123,8 @@ public class ProjectService {
         return code;
     }
 
-    private String resolveStatus(String status) {
-        String value = status == null ? "" : status.trim();
-        if (value.isEmpty()) {
-            return "ACTIVE";
-        }
-        return value.toUpperCase(Locale.ROOT);
+    private ProjectStatus resolveStatus(ProjectStatus status) {
+        return status == null ? ProjectStatus.启用中 : status;
     }
 
     private String trimToNull(String value) {

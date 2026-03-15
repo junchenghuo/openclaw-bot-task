@@ -54,37 +54,37 @@
 
 ### 3.1 任务状态 `TaskStatus`
 
-- `PENDING` 待处理
-- `RUNNING` 进行中
-- `BLOCKED` 阻塞
-- `COMPLETED` 已完成
-- `FAILED` 失败
-- `CANCELLED` 已取消
+- - `待处理`
+- - `进行中`
+- - `阻塞`
+- - `已完成`
+- - `失败`
+- - `已取消`
 
 ### 3.2 任务优先级 `TaskPriority`
 
-- `LOW` / `MEDIUM` / `HIGH` / `URGENT`
+- `低` / `中` / `高` / `紧急`
 
 ### 3.3 允许的状态流转
 
-- `PENDING -> RUNNING / CANCELLED`
-- `RUNNING -> COMPLETED / FAILED / BLOCKED / CANCELLED`
-- `BLOCKED -> RUNNING / FAILED / CANCELLED`
-- `FAILED -> RUNNING`
-- `COMPLETED`、`CANCELLED` 为终态
+- `待处理 -> 进行中 / 已取消`
+- `进行中 -> 已完成 / 失败 / 阻塞 / 已取消`
+- `阻塞 -> 进行中 / 失败 / 已取消`
+- `失败 -> 进行中`
+- `已完成`、`已取消` 为终态
 
 ### 3.4 更新任务限制
 
 - `PUT /api/tasks/{id}` 仅允许更新基础字段
-- 终态任务（`COMPLETED`、`CANCELLED`）不可编辑
+- 终态任务（`已完成`、`已取消`）不可编辑
 - `operatorName` 必填
 - 至少要传一个可更新字段，否则报错
 
 ### 3.5 会议状态 `MeetingStatus`
 
-- `VOTING` 投票中
-- `DECIDED` 已决策
-- `CANCELLED` 已取消
+- - `投票中`
+- - `已决策`
+- - `已取消`
 
 ## 4. 错误码
 
@@ -102,7 +102,7 @@
   "id": 1,
   "projectCode": "DAILY_WORK",
   "projectName": "日常工作",
-  "status": "ACTIVE",
+  "status": "启用中",
   "description": "系统启动后的默认项目",
   "workspacePath": "/Users/imac/midCreate/openclaw-workspaces/ai-team/projects/daily-work-routine/work",
   "memoryPath": "/Users/imac/midCreate/openclaw-workspaces/ai-team/projects/daily-work-routine/memory",
@@ -122,9 +122,9 @@
   "projectId": 1,
   "parentTaskId": null,
   "title": "整理需求文档",
-  "taskType": "DOCUMENT",
-  "status": "PENDING",
-  "priority": "HIGH",
+  "taskType": "文档",
+  "status": "待处理",
+  "priority": "高",
   "detail": "需要完成需求文档初稿",
   "initiator": "张三",
   "ownerName": "李四",
@@ -153,7 +153,7 @@
   "topic": "发布窗口决策",
   "problemStatement": "本周发布还是下周发布",
   "organizerName": "郑吒（leader）",
-  "status": "VOTING",
+  "status": "投票中",
   "scheduledAt": "2026-03-14T11:00:00",
   "decisionOption": null,
   "decisionSummary": null,
@@ -191,7 +191,7 @@
 
 ### 6.3 任务写操作
 
-- `POST /api/tasks`：创建任务（初始状态 `PENDING`）
+- `POST /api/tasks`：创建任务（初始状态 `待处理`）
 - `PUT /api/tasks/{id}`：更新任务基础字段
 - `DELETE /api/tasks/{id}`：删除单条任务（会一并删除日志与事件）
 - `POST /api/tasks/{id}/start`：开始/恢复执行
@@ -199,6 +199,28 @@
 - `POST /api/tasks/{id}/complete`：标记完成
 - `POST /api/tasks/{id}/fail`：标记失败
 - `POST /api/tasks/{id}/cancel`：标记取消
+
+### 6.3.1 原子任务接口（推荐）
+
+- `POST /api/tasks/atomic/create-dispatch`：原子创建任务并写入派单 Outbox（事务内）
+- `POST /api/tasks/{id}/atomic/submit-complete`：原子提交交付并完成任务（强制 `fileIds`）
+
+说明：
+- 这两类接口会先做频道发帖权限预检；无权限时直接返回 `400 INVALID_ARGUMENT`，避免“建单成功但消息必失败”。
+- 消息发送采用 Outbox Worker 异步投递，保证“本地事务成功 + 跨系统最终一致”。
+
+### 6.5 Outbox（一致性与补偿）
+
+- `GET /api/outbox/{id}`：查询单条 Outbox 事件
+- `GET /api/outbox?limit=50`：查询最近 Outbox 事件
+- `POST /api/outbox/{id}/replay`：重放失败事件
+
+Outbox 状态：
+- `待处理`：已入队
+- `处理中`：Worker 正在投递
+- `已发送`：投递成功（含 `externalMessageId`）
+- `失败`：投递失败待重试
+- `已取消`：重试耗尽，需人工介入
 
 ### 6.4 项目会议（决策机制）
 
@@ -225,7 +247,7 @@ Content-Type: application/json
 {
   "projectCode": "HR_UPGRADE",
   "projectName": "人资系统升级",
-  "status": "ACTIVE",
+  "status": "启用中",
   "description": "升级到新架构并完成联调",
   "mattermostChannelId": "uofus9k37bnq5jaoa5h6gcpwhr",
   "mattermostChannelName": "proj-hr-upgrade-20260314"
@@ -254,8 +276,8 @@ Content-Type: application/json
   "projectId": 1,
   "parentTaskId": null,
   "title": "整理需求文档",
-  "taskType": "DOCUMENT",
-  "priority": "HIGH",
+  "taskType": "文档",
+  "priority": "高",
   "detail": "需要完成需求文档初稿",
   "initiator": "张三",
   "ownerName": "李四",
@@ -276,7 +298,7 @@ Content-Type: application/json
   "operatorName": "李四",
   "ownerName": "王五",
   "detail": "已补充执行方案",
-  "priority": "URGENT"
+  "priority": "紧急"
 }
 ```
 

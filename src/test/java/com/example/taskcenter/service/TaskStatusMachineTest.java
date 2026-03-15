@@ -12,34 +12,34 @@ class TaskStatusMachineTest {
 
     @Test
     void shouldAllowPendingToRunning() {
-        assertDoesNotThrow(() -> machine.assertTransitionAllowed(TaskStatus.PENDING, TaskStatus.RUNNING));
+        assertDoesNotThrow(() -> machine.assertTransitionAllowed(TaskStatus.待处理, TaskStatus.进行中));
     }
 
     @Test
     void shouldAllowFailedToRunningForRetry() {
-        assertDoesNotThrow(() -> machine.assertTransitionAllowed(TaskStatus.FAILED, TaskStatus.RUNNING));
+        assertDoesNotThrow(() -> machine.assertTransitionAllowed(TaskStatus.失败, TaskStatus.进行中));
     }
 
     @Test
     void shouldRejectPendingToCompleted() {
         assertThrows(IllegalStateException.class,
-                () -> machine.assertTransitionAllowed(TaskStatus.PENDING, TaskStatus.COMPLETED));
+                () -> machine.assertTransitionAllowed(TaskStatus.待处理, TaskStatus.已完成));
     }
 
     @Test
     void shouldRejectCompletedToRunning() {
         assertThrows(IllegalStateException.class,
-                () -> machine.assertTransitionAllowed(TaskStatus.COMPLETED, TaskStatus.RUNNING));
+                () -> machine.assertTransitionAllowed(TaskStatus.已完成, TaskStatus.进行中));
     }
 
     @Test
     void shouldRejectEditWhenTaskIsCompleted() {
         assertThrows(IllegalStateException.class,
-                () -> machine.assertTaskEditable(TaskStatus.COMPLETED));
+                () -> machine.assertTaskEditable(TaskStatus.已完成));
     }
 
     @Test
     void shouldAllowEditWhenTaskIsRunning() {
-        assertDoesNotThrow(() -> machine.assertTaskEditable(TaskStatus.RUNNING));
+        assertDoesNotThrow(() -> machine.assertTaskEditable(TaskStatus.进行中));
     }
 }

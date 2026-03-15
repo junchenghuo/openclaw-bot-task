@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS task (
     title               VARCHAR(200) NOT NULL,
     task_type           VARCHAR(64) NOT NULL,
     status              VARCHAR(32) NOT NULL,
-    priority            VARCHAR(32) NOT NULL DEFAULT 'MEDIUM',
+    priority            VARCHAR(32) NOT NULL DEFAULT '中',
     detail              TEXT,
     initiator           VARCHAR(100),
     owner_name          VARCHAR(100),
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS project_meeting (
     topic                   VARCHAR(200) NOT NULL,
     problem_statement       TEXT,
     organizer_name          VARCHAR(100) NOT NULL,
-    status                  VARCHAR(32) NOT NULL DEFAULT 'VOTING',
+    status                  VARCHAR(32) NOT NULL DEFAULT '投票中',
     scheduled_at            TIMESTAMP,
     decision_option         VARCHAR(200),
     decision_summary        TEXT,
@@ -130,3 +130,25 @@ ALTER TABLE project_meeting DROP CONSTRAINT IF EXISTS project_meeting_project_id
 ALTER TABLE project_meeting
     ADD CONSTRAINT fk_project_meeting_project_cascade
         FOREIGN KEY (project_id) REFERENCES project(id) ON DELETE CASCADE;
+
+CREATE TABLE IF NOT EXISTS outbox_event (
+    id                  BIGSERIAL PRIMARY KEY,
+    event_type          VARCHAR(32) NOT NULL,
+    status              VARCHAR(32) NOT NULL,
+    task_id             BIGINT,
+    project_id          BIGINT,
+    channel_id          VARCHAR(64),
+    idempotency_key     VARCHAR(128) NOT NULL UNIQUE,
+    payload_json        TEXT NOT NULL,
+    attempt_count       INTEGER NOT NULL DEFAULT 0,
+    max_attempts        INTEGER NOT NULL DEFAULT 10,
+    next_retry_at       TIMESTAMP,
+    sent_at             TIMESTAMP,
+    last_error          TEXT,
+    external_message_id VARCHAR(64),
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_outbox_event_status_retry ON outbox_event(status, next_retry_at);
+CREATE INDEX IF NOT EXISTS idx_outbox_event_task_id ON outbox_event(task_id);

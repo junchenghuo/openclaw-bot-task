@@ -14,14 +14,14 @@ public class TaskStatusMachine {
     private static final Map<TaskStatus, Set<TaskStatus>> ALLOWED_TRANSITIONS = new EnumMap<>(TaskStatus.class);
 
     static {
-        ALLOWED_TRANSITIONS.put(TaskStatus.PENDING, EnumSet.of(TaskStatus.RUNNING, TaskStatus.CANCELLED));
-        ALLOWED_TRANSITIONS.put(TaskStatus.RUNNING,
-                EnumSet.of(TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.BLOCKED, TaskStatus.CANCELLED));
-        ALLOWED_TRANSITIONS.put(TaskStatus.BLOCKED,
-                EnumSet.of(TaskStatus.RUNNING, TaskStatus.FAILED, TaskStatus.CANCELLED));
-        ALLOWED_TRANSITIONS.put(TaskStatus.FAILED, EnumSet.of(TaskStatus.RUNNING));
-        ALLOWED_TRANSITIONS.put(TaskStatus.COMPLETED, EnumSet.noneOf(TaskStatus.class));
-        ALLOWED_TRANSITIONS.put(TaskStatus.CANCELLED, EnumSet.noneOf(TaskStatus.class));
+        ALLOWED_TRANSITIONS.put(TaskStatus.待处理, EnumSet.of(TaskStatus.进行中, TaskStatus.已取消));
+        ALLOWED_TRANSITIONS.put(TaskStatus.进行中,
+                EnumSet.of(TaskStatus.已完成, TaskStatus.失败, TaskStatus.阻塞, TaskStatus.已取消));
+        ALLOWED_TRANSITIONS.put(TaskStatus.阻塞,
+                EnumSet.of(TaskStatus.进行中, TaskStatus.失败, TaskStatus.已取消));
+        ALLOWED_TRANSITIONS.put(TaskStatus.失败, EnumSet.of(TaskStatus.进行中));
+        ALLOWED_TRANSITIONS.put(TaskStatus.已完成, EnumSet.noneOf(TaskStatus.class));
+        ALLOWED_TRANSITIONS.put(TaskStatus.已取消, EnumSet.noneOf(TaskStatus.class));
     }
 
     public void assertTransitionAllowed(TaskStatus from, TaskStatus to) {
@@ -36,7 +36,7 @@ public class TaskStatusMachine {
     }
 
     public void assertTaskEditable(TaskStatus status) {
-        if (status == TaskStatus.COMPLETED || status == TaskStatus.CANCELLED) {
+        if (status == TaskStatus.已完成 || status == TaskStatus.已取消) {
             throw new IllegalStateException("Terminal task cannot be edited: " + status);
         }
     }
