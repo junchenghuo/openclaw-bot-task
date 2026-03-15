@@ -106,6 +106,8 @@
   "description": "系统启动后的默认项目",
   "workspacePath": "/Users/imac/midCreate/openclaw-workspaces/ai-team/projects/daily-work-routine/work",
   "memoryPath": "/Users/imac/midCreate/openclaw-workspaces/ai-team/projects/daily-work-routine/memory",
+  "mattermostChannelId": "uofus9k37bnq5jaoa5h6gcpwhr",
+  "mattermostChannelName": "proj-world-clock-20260314214238",
   "createdAt": "2026-03-13T17:00:00",
   "updatedAt": "2026-03-13T17:00:00"
 }
@@ -177,6 +179,7 @@
 - `GET /api/projects`：项目列表
 - `GET /api/projects/{id}`：项目详情
 - `POST /api/projects`：创建项目并自动初始化目录（`work/memory/wbs/meetings/meta`）
+- `PUT /api/projects/{id}/channel`：绑定项目与 Mattermost 频道（`mattermostChannelId/mattermostChannelName`）
 - `DELETE /api/projects/{id}`：删除项目（会级联删除该项目下任务与会议）
 
 ### 6.2 任务查询
@@ -223,7 +226,21 @@ Content-Type: application/json
   "projectCode": "HR_UPGRADE",
   "projectName": "人资系统升级",
   "status": "ACTIVE",
-  "description": "升级到新架构并完成联调"
+  "description": "升级到新架构并完成联调",
+  "mattermostChannelId": "uofus9k37bnq5jaoa5h6gcpwhr",
+  "mattermostChannelName": "proj-hr-upgrade-20260314"
+}
+```
+
+### 7.2.1 绑定项目频道（推荐）
+
+```http
+PUT /api/projects/{id}/channel
+Content-Type: application/json
+
+{
+  "mattermostChannelId": "uofus9k37bnq5jaoa5h6gcpwhr",
+  "mattermostChannelName": "proj-world-clock-20260314214238"
 }
 ```
 
@@ -380,16 +397,60 @@ Content-Type: application/json
 }
 ```
 
+### 7.13 会议详情返回字段说明（决策审计）
+
+`GET /api/projects/{projectId}/meetings/{meetingId}` 与会议相关写接口返回均包含以下关键字段：
+
+- `problemStatement`：问题描述/问题原因（会议要解决的核心问题）。
+- `decisionOptionsList`：本次投票候选选项列表（按创建时顺序返回）。
+- `votes[]`：每位成员的投票明细，包含：
+  - `voterName` / `voterRole` / `voterMention`
+  - `optionKey`（该成员投给哪个选项）
+  - `reason`（投票理由）
+- `voteSummary`：最终各选项得票数（Map 结构，`选项 -> 票数`）。
+- `decisionOption`：最终通过的方案。
+- `decisionSummary`：最终决策摘要。
+- `minutes`：会议纪要 JSON（含关闭人、关闭时间、逐人投票、票数统计等）。
+
+示例（节选）：
+
+```json
+{
+  "meetingCode": "MEET-20260315000101-1234",
+  "problemStatement": "发布窗口冲突，需在本周/下周二选一",
+  "decisionOptionsList": ["本周发布", "下周发布"],
+  "votes": [
+    {
+      "voterName": "罗甘道（fe）",
+      "optionKey": "本周发布",
+      "reason": "实现已完成且回归通过"
+    },
+    {
+      "voterName": "詹岚（qa）",
+      "optionKey": "下周发布",
+      "reason": "建议补充一轮稳定性测试"
+    }
+  ],
+  "voteSummary": {
+    "本周发布": 1,
+    "下周发布": 1
+  },
+  "decisionOption": "本周发布",
+  "decisionSummary": "按多数票本周发布，先灰度后全量"
+}
+```
+
 ## 8. AI 调用建议（执行策略）
 
 1. 先 `GET /api/projects` 确认 `projectId`。
 2. 立项时优先 `POST /api/projects`，系统会自动创建独立项目目录并返回 `workspacePath`/`memoryPath`。
-3. 用 `POST /api/tasks` 创建任务，保存 `task.id`。
-4. 按业务推进状态：`start -> block/start -> complete/fail/cancel`。
-5. 每次动作后可 `GET /api/tasks/{id}` 验证状态。
-6. 当收到 `INVALID_STATUS_TRANSITION` 时，先读当前任务状态再重试正确动作。
-7. 需要审计链路时读取：`GET /api/tasks/{id}/logs` 和 `GET /api/tasks/{id}/events`。
-8. 项目出现分歧时，先发起会议再投票，再关闭会议落纪要，最后同步回任务/WBS。
+3. 频道创建后，务必 `PUT /api/projects/{id}/channel` 绑定 `channelId`，后续所有派单通过该频道进行。
+4. 用 `POST /api/tasks` 创建任务，保存 `task.id`。
+5. 按业务推进状态：`start -> block/start -> complete/fail/cancel`。
+6. 每次动作后可 `GET /api/tasks/{id}` 验证状态。
+7. 当收到 `INVALID_STATUS_TRANSITION` 时，先读当前任务状态再重试正确动作。
+8. 需要审计链路时读取：`GET /api/tasks/{id}/logs` 和 `GET /api/tasks/{id}/events`。
+9. 项目出现分歧时，先发起会议再投票，再关闭会议落纪要，最后同步回任务/WBS。
 
 ## 9. 一组最小可跑通流程
 

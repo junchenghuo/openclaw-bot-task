@@ -1,6 +1,7 @@
 package com.example.taskcenter.controller;
 
 import com.example.taskcenter.dto.request.CreateProjectRequest;
+import com.example.taskcenter.dto.request.BindProjectChannelRequest;
 import com.example.taskcenter.dto.response.ApiResponse;
 import com.example.taskcenter.dto.response.ProjectResponse;
 import com.example.taskcenter.service.ProjectService;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import java.util.List;
 
@@ -53,5 +55,16 @@ public class ProjectApiController {
     public ApiResponse<Void> deleteProject(@PathVariable("id") Long id, HttpServletRequest request) {
         projectService.deleteProject(id);
         return ApiResponse.success(null, RequestIdSupport.getOrCreate(request));
+    }
+
+    @Operation(summary = "绑定项目频道", description = "为项目绑定 Mattermost 频道ID/名称")
+    @PutMapping("/{id}/channel")
+    public ApiResponse<ProjectResponse> bindProjectChannel(@PathVariable("id") Long id,
+                                                           @Valid @RequestBody BindProjectChannelRequest body,
+                                                           HttpServletRequest request) {
+        return ApiResponse.success(
+                ProjectResponse.from(projectService.bindProjectChannel(id, body.getMattermostChannelId(), body.getMattermostChannelName())),
+                RequestIdSupport.getOrCreate(request)
+        );
     }
 }

@@ -14,6 +14,10 @@ public class CreateProjectRequest {
 
     private String description;
 
+    private String mattermostChannelId;
+
+    private String mattermostChannelName;
+
     public String getProjectCode() {
         return projectCode;
     }
@@ -44,5 +48,21 @@ public class CreateProjectRequest {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getMattermostChannelId() {
+        return mattermostChannelId;
+    }
+
+    public void setMattermostChannelId(String mattermostChannelId) {
+        this.mattermostChannelId = mattermostChannelId;
+    }
+
+    public String getMattermostChannelName() {
+        return mattermostChannelName;
+    }
+
+    public void setMattermostChannelName(String mattermostChannelName) {
+        this.mattermostChannelName = mattermostChannelName;
     }
 }

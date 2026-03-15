@@ -6,12 +6,18 @@ CREATE TABLE IF NOT EXISTS project (
     description     TEXT,
     workspace_path  VARCHAR(500),
     memory_path     VARCHAR(500),
+    mattermost_channel_id VARCHAR(64) UNIQUE,
+    mattermost_channel_name VARCHAR(128),
     created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 ALTER TABLE project ADD COLUMN IF NOT EXISTS workspace_path VARCHAR(500);
 ALTER TABLE project ADD COLUMN IF NOT EXISTS memory_path VARCHAR(500);
+ALTER TABLE project ADD COLUMN IF NOT EXISTS mattermost_channel_id VARCHAR(64);
+ALTER TABLE project ADD COLUMN IF NOT EXISTS mattermost_channel_name VARCHAR(128);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_project_mattermost_channel_id
+    ON project (mattermost_channel_id);
 
 CREATE TABLE IF NOT EXISTS task (
     id                  BIGSERIAL PRIMARY KEY,

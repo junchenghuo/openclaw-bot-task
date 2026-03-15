@@ -37,6 +37,12 @@ public class Project {
     @Column(name = "memory_path", length = 500)
     private String memoryPath;
 
+    @Column(name = "mattermost_channel_id", length = 64, unique = true)
+    private String mattermostChannelId;
+
+    @Column(name = "mattermost_channel_name", length = 128)
+    private String mattermostChannelName;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -125,5 +131,21 @@ public class Project {
 
     public void setMemoryPath(String memoryPath) {
         this.memoryPath = memoryPath;
+    }
+
+    public String getMattermostChannelId() {
+        return mattermostChannelId;
+    }
+
+    public void setMattermostChannelId(String mattermostChannelId) {
+        this.mattermostChannelId = mattermostChannelId;
+    }
+
+    public String getMattermostChannelName() {
+        return mattermostChannelName;
+    }
+
+    public void setMattermostChannelName(String mattermostChannelName) {
+        this.mattermostChannelName = mattermostChannelName;
     }
 }

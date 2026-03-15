@@ -35,6 +35,12 @@
 - 新增任务中心页与项目看板联动：补齐 `TaskCenterPageController` 与 `task-center.html`，统一入口查看项目/任务/会议状态。
 - 增强项目与任务关联查询能力：扩展 `ProjectService`、`TaskService`、Repository 查询与模板展示，提升进度跟踪与回溯效率。
 
+## 本次改进点（2026-03-15）
+
+- 新增项目频道绑定能力：增加 `PUT /api/projects/{id}/channel`，支持将项目与 Mattermost 频道 ID/名称绑定。
+- 扩展项目模型与数据库结构：`project` 表新增 `mattermost_channel_id`/`mattermost_channel_name`，并对频道 ID 建立唯一索引。
+- 会议详情新增投票汇总字段：在会议响应中返回按选项聚合的票数统计，便于快速判定决策结果。
+
 ## 运行环境
 
 - JDK 17+

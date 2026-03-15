@@ -4,6 +4,7 @@ import com.example.taskcenter.entity.ProjectMeeting;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 public record ProjectMeetingResponse(
         Long id,
@@ -19,6 +20,8 @@ public record ProjectMeetingResponse(
         String decisionOption,
         String decisionSummary,
         String decisionOptions,
+        List<String> decisionOptionsList,
+        Map<String, Long> voteSummary,
         String minutes,
         List<MeetingParticipantResponse> participants,
         List<MeetingVoteResponse> votes,
@@ -27,7 +30,9 @@ public record ProjectMeetingResponse(
 ) {
     public static ProjectMeetingResponse from(ProjectMeeting meeting,
                                               List<MeetingParticipantResponse> participants,
-                                              List<MeetingVoteResponse> votes) {
+                                              List<MeetingVoteResponse> votes,
+                                              List<String> decisionOptionsList,
+                                              Map<String, Long> voteSummary) {
         return new ProjectMeetingResponse(
                 meeting.getId(),
                 meeting.getMeetingCode(),
@@ -42,6 +47,8 @@ public record ProjectMeetingResponse(
                 meeting.getDecisionOption(),
                 meeting.getDecisionSummary(),
                 meeting.getDecisionOptionsJson(),
+                decisionOptionsList,
+                voteSummary,
                 meeting.getMinutesJson(),
                 participants,
                 votes,

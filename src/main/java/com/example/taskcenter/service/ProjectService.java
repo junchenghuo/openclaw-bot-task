@@ -64,6 +64,16 @@ public class ProjectService {
         project.setDescription(request.getDescription());
         project.setWorkspacePath(projectPaths.workspacePath());
         project.setMemoryPath(projectPaths.memoryPath());
+        project.setMattermostChannelId(trimToNull(request.getMattermostChannelId()));
+        project.setMattermostChannelName(trimToNull(request.getMattermostChannelName()));
+        return projectRepository.save(project);
+    }
+
+    @Transactional
+    public Project bindProjectChannel(Long projectId, String channelId, String channelName) {
+        Project project = getProject(projectId);
+        project.setMattermostChannelId(trimToNull(channelId));
+        project.setMattermostChannelName(trimToNull(channelName));
         return projectRepository.save(project);
     }
 
@@ -118,5 +128,13 @@ public class ProjectService {
             return "ACTIVE";
         }
         return value.toUpperCase(Locale.ROOT);
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String v = value.trim();
+        return v.isEmpty() ? null : v;
     }
 }

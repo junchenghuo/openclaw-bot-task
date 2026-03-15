@@ -12,6 +12,8 @@ public record ProjectResponse(
         String description,
         String workspacePath,
         String memoryPath,
+        String mattermostChannelId,
+        String mattermostChannelName,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -24,6 +26,8 @@ public record ProjectResponse(
                 project.getDescription(),
                 project.getWorkspacePath(),
                 project.getMemoryPath(),
+                project.getMattermostChannelId(),
+                project.getMattermostChannelName(),
                 project.getCreatedAt(),
                 project.getUpdatedAt()
         );

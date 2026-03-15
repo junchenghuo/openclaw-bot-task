@@ -230,7 +230,22 @@ public class ProjectMeetingService {
                 .stream()
                 .map(MeetingVoteResponse::from)
                 .toList();
-        return ProjectMeetingResponse.from(meeting, participants, votes);
+        List<String> decisionOptionsList = parseDecisionOptions(meeting.getDecisionOptionsJson());
+        Map<String, Long> voteSummary = buildVoteSummary(votes, decisionOptionsList);
+        return ProjectMeetingResponse.from(meeting, participants, votes, decisionOptionsList, voteSummary);
+    }
+
+    private Map<String, Long> buildVoteSummary(List<MeetingVoteResponse> votes,
+                                               List<String> decisionOptionsList) {
+        Map<String, Long> summary = new LinkedHashMap<>();
+        for (String option : decisionOptionsList) {
+            summary.put(option, 0L);
+        }
+        for (MeetingVoteResponse vote : votes) {
+            String option = vote.optionKey();
+            summary.put(option, summary.getOrDefault(option, 0L) + 1L);
+        }
+        return summary;
     }
 
     private List<String> parseDecisionOptions(String optionsJson) {
